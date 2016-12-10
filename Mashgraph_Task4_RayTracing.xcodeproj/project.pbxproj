@@ -7,7 +7,12 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
-		7851197B1DF6FAC900030478 /* main.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 7851197A1DF6FAC900030478 /* main.cpp */; };
+		780C2A911DF8495B00B3C79F /* main.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 780C2A901DF8495B00B3C79F /* main.cpp */; };
+		780C2A931DF856CA00B3C79F /* object.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 780C2A921DF856CA00B3C79F /* object.cpp */; };
+		785119921DF6FCE300030478 /* image_DXT.c in Sources */ = {isa = PBXBuildFile; fileRef = 785119911DF6FCE300030478 /* image_DXT.c */; };
+		785119941DF6FCE800030478 /* image_helper.c in Sources */ = {isa = PBXBuildFile; fileRef = 785119931DF6FCE800030478 /* image_helper.c */; };
+		785119961DF6FCEF00030478 /* SOIL.c in Sources */ = {isa = PBXBuildFile; fileRef = 785119951DF6FCEF00030478 /* SOIL.c */; };
+		785119981DF6FCF500030478 /* stb_image_aug.c in Sources */ = {isa = PBXBuildFile; fileRef = 785119971DF6FCF500030478 /* stb_image_aug.c */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXCopyFilesBuildPhase section */
@@ -23,8 +28,18 @@
 /* End PBXCopyFilesBuildPhase section */
 
 /* Begin PBXFileReference section */
+		780C2A901DF8495B00B3C79F /* main.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; name = main.cpp; path = Mashgraph_Task4_RayTracing/src/main.cpp; sourceTree = "<group>"; };
+		780C2A921DF856CA00B3C79F /* object.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; name = object.cpp; path = Mashgraph_Task4_RayTracing/src/object.cpp; sourceTree = "<group>"; };
 		785119771DF6FAC900030478 /* Mashgraph_Task4_RayTracing */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = Mashgraph_Task4_RayTracing; sourceTree = BUILT_PRODUCTS_DIR; };
-		7851197A1DF6FAC900030478 /* main.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = main.cpp; sourceTree = "<group>"; };
+		785119811DF6FB2B00030478 /* bin */ = {isa = PBXFileReference; lastKnownFileType = folder; path = bin; sourceTree = "<group>"; };
+		785119821DF6FB2B00030478 /* img */ = {isa = PBXFileReference; lastKnownFileType = folder; path = img; sourceTree = "<group>"; };
+		785119831DF6FB2B00030478 /* Readme.txt */ = {isa = PBXFileReference; lastKnownFileType = text; path = Readme.txt; sourceTree = "<group>"; };
+		785119841DF6FB2B00030478 /* src */ = {isa = PBXFileReference; lastKnownFileType = folder; path = src; sourceTree = "<group>"; };
+		785119911DF6FCE300030478 /* image_DXT.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; name = image_DXT.c; path = Mashgraph_Task4_RayTracing/src/SOIL/image_DXT.c; sourceTree = "<group>"; };
+		785119931DF6FCE800030478 /* image_helper.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; name = image_helper.c; path = Mashgraph_Task4_RayTracing/src/SOIL/image_helper.c; sourceTree = "<group>"; };
+		785119951DF6FCEF00030478 /* SOIL.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; name = SOIL.c; path = Mashgraph_Task4_RayTracing/src/SOIL/SOIL.c; sourceTree = "<group>"; };
+		785119971DF6FCF500030478 /* stb_image_aug.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; name = stb_image_aug.c; path = Mashgraph_Task4_RayTracing/src/SOIL/stb_image_aug.c; sourceTree = "<group>"; };
+		78CC74B61DFC125B00C6AF6E /* object.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = object.h; path = Mashgraph_Task4_RayTracing/src/object.h; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -41,6 +56,13 @@
 		7851196E1DF6FAC800030478 = {
 			isa = PBXGroup;
 			children = (
+				780C2A921DF856CA00B3C79F /* object.cpp */,
+				78CC74B61DFC125B00C6AF6E /* object.h */,
+				780C2A901DF8495B00B3C79F /* main.cpp */,
+				785119971DF6FCF500030478 /* stb_image_aug.c */,
+				785119951DF6FCEF00030478 /* SOIL.c */,
+				785119931DF6FCE800030478 /* image_helper.c */,
+				785119911DF6FCE300030478 /* image_DXT.c */,
 				785119791DF6FAC900030478 /* Mashgraph_Task4_RayTracing */,
 				785119781DF6FAC900030478 /* Products */,
 			);
@@ -57,7 +79,10 @@
 		785119791DF6FAC900030478 /* Mashgraph_Task4_RayTracing */ = {
 			isa = PBXGroup;
 			children = (
-				7851197A1DF6FAC900030478 /* main.cpp */,
+				785119811DF6FB2B00030478 /* bin */,
+				785119821DF6FB2B00030478 /* img */,
+				785119831DF6FB2B00030478 /* Readme.txt */,
+				785119841DF6FB2B00030478 /* src */,
 			);
 			path = Mashgraph_Task4_RayTracing;
 			sourceTree = "<group>";
@@ -119,7 +144,12 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				7851197B1DF6FAC900030478 /* main.cpp in Sources */,
+				780C2A911DF8495B00B3C79F /* main.cpp in Sources */,
+				780C2A931DF856CA00B3C79F /* object.cpp in Sources */,
+				785119921DF6FCE300030478 /* image_DXT.c in Sources */,
+				785119941DF6FCE800030478 /* image_helper.c in Sources */,
+				785119961DF6FCEF00030478 /* SOIL.c in Sources */,
+				785119981DF6FCF500030478 /* stb_image_aug.c in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -216,6 +246,13 @@
 		7851197F1DF6FAC900030478 /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
+				HEADER_SEARCH_PATHS = (
+					"\"$(SRCROOT)/Mashgraph_Task4_RayTracing/src\"",
+					/usr/local/include,
+				);
+				LIBRARY_SEARCH_PATHS = /usr/local/lib;
+				LINK_WITH_STANDARD_LIBRARIES = YES;
+				OTHER_LDFLAGS = "-lcgal";
 				PRODUCT_NAME = "$(TARGET_NAME)";
 			};
 			name = Debug;
@@ -223,6 +260,13 @@
 		785119801DF6FAC900030478 /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
+				HEADER_SEARCH_PATHS = (
+					"\"$(SRCROOT)/Mashgraph_Task4_RayTracing/src\"",
+					/usr/local/include,
+				);
+				LIBRARY_SEARCH_PATHS = /usr/local/lib;
+				LINK_WITH_STANDARD_LIBRARIES = YES;
+				OTHER_LDFLAGS = "-lcgal";
 				PRODUCT_NAME = "$(TARGET_NAME)";
 			};
 			name = Release;
@@ -246,6 +290,7 @@
 				785119801DF6FAC900030478 /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
 		};
 /* End XCConfigurationList section */
 	};

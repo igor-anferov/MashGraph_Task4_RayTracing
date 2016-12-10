@@ -1,0 +1,6 @@
+//  PARAMETER       VALUE   UNIT    COMMENT
+
+    res_w           1920    pixels  // Horisontal resolution
+    res_h           1200    pixels  // Vertical resolution
+    focal_length    100     mm      // Camera focal length
+    LED_side        50      mm      // LED side size
