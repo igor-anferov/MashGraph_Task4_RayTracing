@@ -49,7 +49,7 @@ int main(int argc, char** argv) {
     }
     
     object *sc = (object *) new scene;
-    camera cam(dvec3(0,0,2), dvec3(1,0,0), dvec3(0,1,0), 30, 2880, 1800, 64, sc);
+    camera cam(dvec3(0,0,2), dvec3(1,0,0), dvec3(0,1,0), 30, 2880, 1800, 1, sc);
     cam.draw();
     cam.save_to_file("res.bmp");
     

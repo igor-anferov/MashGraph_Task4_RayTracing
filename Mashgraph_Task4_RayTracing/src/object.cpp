@@ -174,29 +174,30 @@ camera::camera(dvec3 p, dvec3 x_d, dvec3 y_d, double f_l, int x_r, int y_r, int 
 
 void camera::draw() {
     dvec3 source = position + z_dir;
+    dvec3 step_x = 2 * length(x_dir) / x_res * normalize(x_dir);
+    dvec3 step_y = 2 * length(y_dir) / y_res * normalize(y_dir);
     default_random_engine generator;
+    uniform_real_distribution<double> distribution_x (0, 2 * length(x_dir) / x_res);
+    uniform_real_distribution<double> distribution_y (0, 2 * length(y_dir) / y_res);
+    dvec3 local_zero = position - x_dir - y_dir - source;
+    vector<dvec3> ss_points;
+    for (int i=0; i<ssaa; i++) {
+        ss_points.push_back(dvec3(normalize(x_dir)*distribution_x(generator) +
+                                  normalize(y_dir)*distribution_y(generator)));
+    }
     for (int i=0; i<x_res; i++) {
         for (int j=0; j<y_res; j++) {
-            uniform_real_distribution<double> distribution_x
-                (2 * length(x_dir) / x_res * i, 2 * length(x_dir) / x_res * (i+1));
-            uniform_real_distribution<double> distribution_y
-                (2 * length(y_dir) / y_res * j, 2 * length(y_dir) / y_res * (j+1));
             for (int k=0; k<ssaa; k++) {
-                dvec3 x_shift = normalize(x_dir)*distribution_x(generator);
-                dvec3 y_shift = normalize(y_dir)*distribution_y(generator);
-                
-                dvec3 dir = position - x_dir - y_dir + normalize(x_dir)*distribution_x(generator)
-                                                     + normalize(y_dir)*distribution_y(generator)
-                            - source;
-                if (i==960 && j==540) {
-                    ;;
-                }
+                dvec3 dir = local_zero + ss_points[k];
                 if (scene->is_intersected_by(source, dir).first) {
                     texture[i][j] += scene->backtrace();
                 }
             }
             texture[i][j] /= ssaa;
+            local_zero += step_y;
         }
+        local_zero += step_x;
+        local_zero -= 2.0 * y_dir;
     }
 }
 
