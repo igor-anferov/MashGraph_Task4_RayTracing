@@ -9,9 +9,18 @@
 #ifndef object_h
 #define object_h
 
+#define MIN2(x,y) ((x)<(y)?(x):(y))
+#define MAX2(x,y) ((x)>(y)?(x):(y))
+#define MIN3(x,y,z) (MIN2(x,y)<(z)?MIN2(x,y):(z))
+#define MAX3(x,y,z) (MAX2(x,y)>(z)?MAX2(x,y):(z))
+#define MIN4(x,y,z,w) (MIN3(x,y,z)<(w)?MIN3(x,y,z):(w))
+#define MAX4(x,y,z,w) (MAX3(x,y,z)>(w)?MAX3(x,y,z):(w))
+
 #include <utility>
 #include <vector>
 #include <string>
+#include <algorithm>
+#include <random>
 
 #include "glm/glm.hpp"
 #include "glm/gtc/matrix_transform.hpp"
@@ -24,6 +33,8 @@
 #include <CGAL/Direction_3.h>
 #include <CGAL/intersections.h>
 #include <CGAL/Cartesian.h>
+
+#include <SOIL/SOIL.h>
 
 using namespace CGAL;
 using namespace std;
@@ -39,6 +50,7 @@ public:
     dvec3 position = dvec3(0,0,0);
     dvec3 x_dir = dvec3(1,0,0);
     dvec3 y_dir = dvec3(0,1,0);
+    dvec3 color = dvec3(0,1,0);
     double x_size = 1;
     double y_size = 1;
     double reflection = 0;
@@ -50,6 +62,7 @@ public:
     vector<object *> parts;
     
     object(string s);
+    ~object();
     virtual void translate(dvec3 trans);
     virtual void rotate(dvec3 rot_axis, float rot_angle);
     virtual pair<bool, dvec3> is_intersected_by(dvec3 beam_pos, dvec3 beam_dir);
@@ -65,11 +78,6 @@ public:
     rectangle(string name):object(name) {
         x_size = text_x / 1000.0;
         y_size = text_y / 1000.0;
-        for (int i=0; i<text_x; i++) {
-            for (int j=0; j<text_y; j++) {
-                texture[i][j] = dvec3(0.5,0,0);
-            }
-        }
     }
     
     pair<bool, dvec3> is_intersected_by(dvec3 beam_pos, dvec3 beam_dir) {
@@ -111,6 +119,14 @@ public:
         return make_pair(false, dvec3(0));
     }
     
+    void trace(dvec3 col) {
+        for (int i=0; i<text_x; i++) {
+            for (int j=0; j<text_y; j++) {
+                texture[i][j] = color;
+            }
+        }
+    }
+    
     dvec3 backtrace() {
         dvec3 relative_coodrs( last_intersect_point - (position - 0.5 * ( y_dir * y_size + x_dir * x_size )) );
         Plane_3<Cartesian<double>> y_plane(Point_3<Cartesian<double>>(relative_coodrs.x, relative_coodrs.y, relative_coodrs.z),
@@ -143,6 +159,49 @@ public:
 };
 
 class cornellBox: object {
+public:
+    cornellBox();
+    ~cornellBox();
+};
+
+class parallelepiped: object {
+public:
+    parallelepiped();
+    ~parallelepiped();
+};
+
+class scene: object {
+public:
+    scene();
+    ~scene();
+};
+
+class tex {
+    dvec3 *data = NULL;
+    int x = 0;
+    int y = 0;
+public:
+    ~tex();
+    void init(int xx, int yy);
+    dvec3* operator[] (int i);
+};
+
+class camera {
+public:
+    dvec3 position;
+    dvec3 x_dir;
+    dvec3 y_dir;
+    dvec3 z_dir;
+    double focal_length;
+    int x_res;
+    int y_res;
+    int ssaa;
+    object * scene;
+    tex texture;
+    
+    camera(dvec3, dvec3, dvec3, double, int, int, int, object *);
+    void draw();
+    void save_to_file(string file);
 };
 
 #endif /* object_h */

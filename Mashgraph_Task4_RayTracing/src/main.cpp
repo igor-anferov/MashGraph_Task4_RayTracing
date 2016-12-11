@@ -48,5 +48,10 @@ int main(int argc, char** argv) {
         cout << tmp.first << " = " << tmp.second << endl;
     }
     
+    object *sc = (object *) new scene;
+    camera cam(dvec3(0,0,2), dvec3(1,0,0), dvec3(0,1,0), 30, 2880, 1800, 64, sc);
+    cam.draw();
+    cam.save_to_file("res.bmp");
+    
     return 0;
 }
