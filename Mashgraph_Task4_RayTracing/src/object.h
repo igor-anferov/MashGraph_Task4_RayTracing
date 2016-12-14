@@ -42,7 +42,7 @@ using namespace glm;
 
 class object;
 
-bool cmp(pair<object *, int> a, pair<object *, int> b);
+bool cmp(pair<object *, double> a, pair<object *, double> b);
 
 class object {
 public:
@@ -55,19 +55,16 @@ public:
     double y_size = 1;
     double reflection = 0;
     double refraction = 0;
-    dvec3 last_beam_pos;
-    dvec3 last_beam_dir;
-    dvec3 last_intersect_point;
-    object * last_beam_intersect;
     vector<object *> parts;
+    map<pair<dvec3, dvec3>,pair<object *, dvec3>> intersections;
     
     object(string s);
     ~object();
     virtual void translate(dvec3 trans);
     virtual void rotate(dvec3 rot_axis, float rot_angle);
     virtual pair<bool, dvec3> is_intersected_by(dvec3 beam_pos, dvec3 beam_dir);
-    virtual void trace(dvec3 color);
-    virtual dvec3 backtrace();
+    virtual void trace(dvec3 color, dvec3 beam_pos, dvec3 beam_dir);
+    virtual dvec3 backtrace(dvec3 beam_pos, dvec3 beam_dir);
 };
 
 template <int text_x, int text_y>
@@ -80,7 +77,7 @@ public:
         y_size = text_y / 1000.0;
     }
     
-    pair<bool, dvec3> is_intersected_by(dvec3 beam_pos, dvec3 beam_dir) {
+    pair<bool, dvec3> is_intersected_by(dvec3 beam_pos, dvec3 beam_dir) override {
         dvec3 p1 = position + 0.5 * (  y_dir * y_size + x_dir * x_size );
         dvec3 p2 = position + 0.5 * ( -y_dir * y_size - x_dir * x_size );
         dvec3 p3 = position + 0.5 * (  y_dir * y_size - x_dir * x_size );
@@ -101,25 +98,23 @@ public:
             if (!int_point)
             return make_pair(false, dvec3(0));
             dvec3 p(int_point->x(), int_point->y(), int_point->z());
-            last_beam_dir = beam_dir;
-            last_beam_pos = beam_pos;
-            last_intersect_point = p;
+#pragma omp critical
+            intersections[make_pair(beam_pos, beam_dir)] = make_pair((object *)NULL, p);
             return make_pair(true, p);
         } else if (do_intersect(tr2, ray)) {
             auto int_opt_point = intersection(tr2, ray);
             Point_3<Cartesian<double>> *int_point = boost::get<Point_3<Cartesian<double>>>(&*int_opt_point);
             if (!int_point)
-            return make_pair(false, dvec3(0));
+                return make_pair(false, dvec3(0));
             dvec3 p(int_point->x(), int_point->y(), int_point->z());
-            last_beam_dir = beam_dir;
-            last_beam_pos = beam_pos;
-            last_intersect_point = p;
+#pragma omp critical
+            intersections[make_pair(beam_pos, beam_dir)] = make_pair((object *)NULL, p);
             return make_pair(true, p);
         } else
-        return make_pair(false, dvec3(0));
+            return make_pair(false, dvec3(0));
     }
     
-    void trace(dvec3 col) {
+    void trace(dvec3 colour, dvec3 beam_pos, dvec3 beam_dir) override {
         for (int i=0; i<text_x; i++) {
             for (int j=0; j<text_y; j++) {
                 texture[i][j] = color;
@@ -127,8 +122,11 @@ public:
         }
     }
     
-    dvec3 backtrace() {
-        dvec3 relative_coodrs( last_intersect_point - (position - 0.5 * ( y_dir * y_size + x_dir * x_size )) );
+    dvec3 backtrace(dvec3 beam_pos, dvec3 beam_dir) override {
+        dvec3 int_p;
+#pragma omp critical
+        int_p = intersections[make_pair(beam_pos,  beam_dir)].second;
+        dvec3 relative_coodrs(int_p  - (position - 0.5 * ( y_dir * y_size + x_dir * x_size )) );
         Plane_3<Cartesian<double>> y_plane(Point_3<Cartesian<double>>(relative_coodrs.x, relative_coodrs.y, relative_coodrs.z),
                                            Direction_3<Cartesian<double>>(y_dir.x, y_dir.y, y_dir.z));
         Line_3<Cartesian<double>>   y_line(Point_3<Cartesian<double>>(0,0,0), Point_3<Cartesian<double>>(y_dir.x, y_dir.y, y_dir.z));

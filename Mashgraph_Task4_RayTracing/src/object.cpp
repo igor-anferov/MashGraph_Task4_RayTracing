@@ -1,6 +1,6 @@
 #include "object.h"
 
-bool cmp(pair<object *, int> a, pair<object *, int> b) {
+bool cmp(pair<object *, double> a, pair<object *, double> b) {
     return a.second < b.second;
 }
 
@@ -21,16 +21,18 @@ object::~object() {
 
 void object::rotate(dvec3 rot_axis, float rot_angle) {
     dmat4 rot_matrix = dmat4(glm::rotate(mat4(), rot_angle, vec3(rot_axis)));
+    x_dir = dvec3(rot_matrix * dvec4(position+x_dir, 1));
+    y_dir = dvec3(rot_matrix * dvec4(position+y_dir, 1));
     position = dvec3(rot_matrix * dvec4(position, 1));
-    x_dir = dvec3(rot_matrix * dvec4(x_dir, 1));
-    y_dir = dvec3(rot_matrix * dvec4(y_dir, 1));
+    x_dir -= position;
+    y_dir -= position;
     for (object *i: parts)
         i->rotate(rot_axis, rot_angle);
 }
 
 pair<bool, dvec3> object::is_intersected_by(dvec3 beam_pos, dvec3 beam_dir) {
     pair<bool, dvec3> tmp;
-    vector<pair<object *, int>> intersect_positions;
+    vector<pair<object *, double>> intersect_positions;
     for (object *i: parts) {
         tmp = i->is_intersected_by(beam_pos, beam_dir);
         if (!tmp.first) {
@@ -39,18 +41,27 @@ pair<bool, dvec3> object::is_intersected_by(dvec3 beam_pos, dvec3 beam_dir) {
         intersect_positions.push_back(make_pair(i, length(tmp.second - beam_pos)));
     }
     if (intersect_positions.empty()) {
-        last_beam_intersect = NULL;
         return make_pair(false, dvec3(0));
     }
     sort(intersect_positions.begin(), intersect_positions.end(), cmp);
-    last_beam_intersect = intersect_positions[0].first;
-    return last_beam_intersect->is_intersected_by(beam_pos, beam_dir);
+#pragma omp critical
+    intersections[make_pair(beam_pos, beam_dir)] = make_pair(intersect_positions[0].first, dvec3(0));
+    return intersect_positions[0].first->is_intersected_by(beam_pos, beam_dir);
 }
-void object::trace(dvec3 color) {
-    last_beam_intersect->trace(color);
+void object::trace(dvec3 color, dvec3 beam_pos, dvec3 beam_dir) {
+    for (object *i: parts)
+        i->trace(color, dvec3(0), dvec3(0));
+//#pragma omp critical
+//    intersections[make_pair(beam_pos,  beam_dir)].first->trace(color, beam_pos, beam_dir);
 }
-dvec3 object::backtrace() {
-    return last_beam_intersect->backtrace();
+dvec3 object::backtrace(dvec3 beam_pos, dvec3 beam_dir) {
+    object * int_obj;
+#pragma omp critical
+    int_obj = intersections[make_pair(beam_pos,  beam_dir)].first;
+    if (int_obj == NULL) {
+        throw "ERROR! Trying to backtrace ray that wasn't checked";
+    }
+    return int_obj->backtrace(beam_pos, beam_dir);
 }
 
 cornellBox::cornellBox():object("cornellBox") {
@@ -86,48 +97,48 @@ cornellBox::cornellBox():object("cornellBox") {
     parts.push_back(square);
     
     for (object *i: parts)
-        i->trace(dvec3(0));
+        i->trace(dvec3(0), dvec3(0), dvec3(0));
 }
 
 parallelepiped::parallelepiped():object("Parallelepiped") {
     object *square;
     
-    square = (object *) new rectangle<350, 700>("Back_wall");
-    square->translate(dvec3(0,0,-0.175));
+    square = (object *) new rectangle<325, 650>("Back_wall");
+    square->translate(dvec3(0,0,-0.1625));
     square->color = dvec3(0.4,0.22,0.1);
     parts.push_back(square);
     
-    square = (object *) new rectangle<350, 700>("Front_wall");
-    square->translate(dvec3(0,0,0.175));
+    square = (object *) new rectangle<325, 650>("Front_wall");
+    square->translate(dvec3(0,0,0.1625));
     square->color = dvec3(1,0,0);
     parts.push_back(square);
     
-    square = (object *) new rectangle<350, 700>("Left_wall");
-    square->translate(dvec3(0,0,-0.175));
+    square = (object *) new rectangle<325, 650>("Left_wall");
+    square->translate(dvec3(0,0,-0.1625));
     square->rotate(dvec3(0,1,0), 90);
     square->color = dvec3(0,1,0);
     parts.push_back(square);
     
-    square = (object *) new rectangle<350, 700>("Right_wall");
-    square->translate(dvec3(0,0,-0.175));
+    square = (object *) new rectangle<325, 650>("Right_wall");
+    square->translate(dvec3(0,0,-0.1625));
     square->rotate(dvec3(0,1,0), 270);
     square->color = dvec3(0,0,1);
     parts.push_back(square);
     
-    square = (object *) new rectangle<350, 350>("Upper_wall");
+    square = (object *) new rectangle<325, 325>("Upper_wall");
     square->rotate(dvec3(1,0,0), 90);
-    square->translate(dvec3(0,0.350,0));
+    square->translate(dvec3(0,0.325,0));
     square->color = dvec3(1,0,1);
     parts.push_back(square);
     
-    square = (object *) new rectangle<350, 350>("Floor");
+    square = (object *) new rectangle<325, 325>("Floor");
     square->rotate(dvec3(1,0,0), 270);
-    square->translate(dvec3(0,-0.350,0));
+    square->translate(dvec3(0,-0.325,0));
     square->color = dvec3(0,0,0);
     parts.push_back(square);
     
     for (object *i: parts)
-        i->trace(dvec3(0));
+        i->trace(dvec3(0), dvec3(0), dvec3(0));
 }
 
 scene::scene():object("Scene") {
@@ -137,8 +148,8 @@ scene::scene():object("Scene") {
     parts.push_back(figure);
     
     figure = (object *) new parallelepiped;
-    figure->rotate(dvec3(0,1,0), 30);
-    figure->translate(dvec3(-0.1,-0.150,-0.1));
+    figure->rotate(dvec3(0,1,0), 20);
+    figure->translate(dvec3(-0.175,-0.175,-0.29));
     parts.push_back(figure);
 }
 
@@ -185,19 +196,20 @@ void camera::draw() {
         ss_points.push_back(dvec3(normalize(x_dir)*distribution_x(generator) +
                                   normalize(y_dir)*distribution_y(generator)));
     }
+#pragma omp parallel for schedule(dynamic)
     for (int i=0; i<x_res; i++) {
+        dvec3 local_zero_i = local_zero + double(i)*step_x;
         for (int j=0; j<y_res; j++) {
             for (int k=0; k<ssaa; k++) {
-                dvec3 dir = local_zero + ss_points[k];
+                dvec3 dir = local_zero_i + ss_points[k];
                 if (scene->is_intersected_by(source, dir).first) {
-                    texture[i][j] += scene->backtrace();
+                    dvec3 color = scene->backtrace(source, dir);
+                    texture[i][j] += color;
                 }
             }
             texture[i][j] /= ssaa;
-            local_zero += step_y;
+            local_zero_i += step_y;
         }
-        local_zero += step_x;
-        local_zero -= 2.0 * y_dir;
     }
 }
 

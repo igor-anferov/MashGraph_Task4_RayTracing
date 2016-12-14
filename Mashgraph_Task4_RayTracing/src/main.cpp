@@ -3,6 +3,9 @@
 #include <sstream>
 #include <map>
 #include <string>
+
+#include <omp.h>
+
 #include "object.h"
 
 using namespace std;
@@ -49,8 +52,11 @@ int main(int argc, char** argv) {
     }
     
     object *sc = (object *) new scene;
-    camera cam(dvec3(0,0,2), dvec3(1,0,0), dvec3(0,1,0), 30, 2880, 1800, 1, sc);
+    camera cam(dvec3(0,0,1.85), dvec3(1,0,0), dvec3(0,1,0), 50, 1920, 1080, 1, sc);
+    
+    double start_time = omp_get_wtime();
     cam.draw();
+    cout << endl << "Drawing took " << (omp_get_wtime() - start_time) << " sec." << endl;
     cam.save_to_file("res.bmp");
     
     return 0;

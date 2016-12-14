@@ -365,16 +365,26 @@ namespace detail
 
 	//////////////////////////////////////
 	// Boolean operators
-
-	template <typename T> 
-	GLM_FUNC_QUALIFIER bool operator==
-	(
-		tvec3<T> const & v1, 
-		tvec3<T> const & v2
-	)
-	{
-		return (v1.x == v2.x) && (v1.y == v2.y) && (v1.z == v2.z);
-	}
+    
+    template <typename T>
+    GLM_FUNC_QUALIFIER bool operator==
+    (
+     tvec3<T> const & v1,
+     tvec3<T> const & v2
+     )
+    {
+        return (v1.x == v2.x) && (v1.y == v2.y) && (v1.z == v2.z);
+    }
+    
+    template <typename T>
+    GLM_FUNC_QUALIFIER bool operator<
+    (
+     tvec3<T> const & v1,
+     tvec3<T> const & v2
+     )
+    {
+        return (v1.x < v2.x) || (v1.y < v2.y) || (v1.z < v2.z);
+    }
 
 	template <typename T> 
 	GLM_FUNC_QUALIFIER bool operator!=
