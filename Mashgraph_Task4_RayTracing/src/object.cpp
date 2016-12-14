@@ -46,11 +46,12 @@ pair<bool, dvec3> object::is_intersected_by(dvec3 beam_pos, dvec3 beam_dir) {
     sort(intersect_positions.begin(), intersect_positions.end(), cmp);
 #pragma omp critical
     {
-        cerr << omp_get_thread_num() << " in" << endl;
-        intersections[make_pair(beam_pos, beam_dir)] = make_pair(intersect_positions[0].first, dvec3(0));
-        cerr << omp_get_thread_num() << " --> "<<name<<": " << beam_dir.x << " " << beam_dir.y << " " << beam_dir.z << endl;
-        cerr << omp_get_thread_num() << " out" << endl;
-
+        intersections[make_pair(long(beam_pos.x*1e4+
+                                     beam_pos.y*1e8+
+                                     beam_pos.z*1e12),
+                                long(beam_dir.x*1e4+
+                                     beam_dir.y*1e8+
+                                     beam_dir.z*1e12))] = make_pair(intersect_positions[0].first, dvec3(0));
     }
     return intersect_positions[0].first->is_intersected_by(beam_pos, beam_dir);
 }
@@ -66,16 +67,17 @@ dvec3 object::backtrace(dvec3 beam_pos, dvec3 beam_dir) {
     object * int_obj;
 #pragma omp critical
     {
-        cerr << omp_get_thread_num() << " in " << name  << endl;
         try {
-        int_obj = intersections.at(make_pair(beam_pos,  beam_dir)).first;
+            int_obj = intersections.at(make_pair(long(beam_pos.x*1e4+
+                                                      beam_pos.y*1e8+
+                                                      beam_pos.z*1e12),
+                                                 long(beam_dir.x*1e4+
+                                                      beam_dir.y*1e8+
+                                                      beam_dir.z*1e12))).first;
         } catch (...) {
-            cerr << omp_get_thread_num() << ": ERR!" << endl;
-            cerr << omp_get_thread_num() << " <-- "<<name<<": " << beam_dir.x << " " << beam_dir.y << " " << beam_dir.z << endl;
+            cerr << name << "backtrace error!" << endl;
             exit(-1);
         }
-        cerr << omp_get_thread_num() << " <-- "<<name<<": " << beam_dir.x << " " << beam_dir.y << " " << beam_dir.z << endl;
-        cerr << omp_get_thread_num() << " out " << name  << endl;
     }
     if (int_obj == NULL) {
         throw "ERROR! Trying to backtrace ray that wasn't checked";
@@ -124,36 +126,36 @@ parallelepiped::parallelepiped():object("Parallelepiped") {
     
     square = (object *) new rectangle<325, 650>("Back_wall");
     square->translate(dvec3(0,0,-0.1625));
-    square->color = dvec3(0.4,0.22,0.1);
+    square->color = dvec3(0.57,0.46,0.18);
     parts.push_back(square);
     
     square = (object *) new rectangle<325, 650>("Front_wall");
     square->translate(dvec3(0,0,0.1625));
-    square->color = dvec3(1,0,0);
+    square->color = dvec3(0.57,0.46,0.18);
     parts.push_back(square);
     
     square = (object *) new rectangle<325, 650>("Left_wall");
     square->translate(dvec3(0,0,-0.1625));
     square->rotate(dvec3(0,1,0), 90);
-    square->color = dvec3(0,1,0);
+    square->color = dvec3(0.57,0.46,0.18);
     parts.push_back(square);
     
     square = (object *) new rectangle<325, 650>("Right_wall");
     square->translate(dvec3(0,0,-0.1625));
     square->rotate(dvec3(0,1,0), 270);
-    square->color = dvec3(0,0,1);
+    square->color = dvec3(0.57,0.46,0.18);
     parts.push_back(square);
     
     square = (object *) new rectangle<325, 325>("Upper_wall");
     square->rotate(dvec3(1,0,0), 90);
     square->translate(dvec3(0,0.325,0));
-    square->color = dvec3(1,0,1);
+    square->color = dvec3(0.57,0.46,0.18);
     parts.push_back(square);
     
     square = (object *) new rectangle<325, 325>("Floor");
     square->rotate(dvec3(1,0,0), 270);
     square->translate(dvec3(0,-0.325,0));
-    square->color = dvec3(0,0,0);
+    square->color = dvec3(0.57,0.46,0.18);
     parts.push_back(square);
     
     for (object *i: parts)
@@ -163,17 +165,19 @@ parallelepiped::parallelepiped():object("Parallelepiped") {
 scene::scene():object("Scene") {
     object *figure;
     
-//    figure = (object *) new cornellBox;
-//    parts.push_back(figure);
-//    
-//    figure = (object *) new parallelepiped;
-//    figure->rotate(dvec3(0,1,0), 20);
-//    figure->translate(dvec3(-0.175,-0.175,-0.29));
-//    parts.push_back(figure);
+    figure = (object *) new cornellBox;
+    parts.push_back(figure);
+    
+    figure = (object *) new parallelepiped;
+    figure->rotate(dvec3(0,1,0), 20);
+    figure->translate(dvec3(-0.175,-0.175,-0.29));
+    parts.push_back(figure);
     
     figure = (object *) new sphere<400>("Sphere");
-//    figure->translate(dvec3(-0.175,-0.175,-0.29));
+    figure->color = dvec3(0.85,0.72,0.35);
+    figure->translate(dvec3(0.220,-0.300,-0.050));
     figure->trace(dvec3(), dvec3(), dvec3());
+
     parts.push_back(figure);
 }
 
@@ -228,12 +232,8 @@ void camera::draw() {
                 dvec3 dir = local_zero_i + ss_points[k];
                 dir = normalize(dir);
                 if (scene->is_intersected_by(source, dir).first) {
-                    try {
                     dvec3 color = scene->backtrace(source, dir);
                     texture[i][j] += color;
-                    } catch(...) {
-                        cerr<<omp_get_thread_num()<<": ERR"<<endl;
-                    }
                 }
             }
             texture[i][j] /= ssaa;

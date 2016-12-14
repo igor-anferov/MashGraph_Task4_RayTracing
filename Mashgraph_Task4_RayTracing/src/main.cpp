@@ -52,9 +52,10 @@ int main(int argc, char** argv) {
     }
     
     object *sc = (object *) new scene;
-    camera cam(dvec3(0,0,1.85), dvec3(1,0,0), dvec3(0,1,0), 50, 300, 300, 1, sc);
+//    sc->rotate(dvec3(1,0,0), 90);
+    camera cam(dvec3(0,0,1.85), dvec3(1,0,0), dvec3(0,1,0), 50, 512, 512, 1, sc);
     
-//    double start_time = omp_get_wtime();
+    double start_time = omp_get_wtime();
     try {
         cam.draw();
     } catch (const char * str) {
@@ -62,7 +63,7 @@ int main(int argc, char** argv) {
     } catch (...) {
         cout << "UNHANDLED ERROR!!!" << endl;
     }
-//    cout << endl << "Drawing took " << (omp_get_wtime() - start_time) << " sec." << endl;
+    cout << endl << "Drawing took " << (omp_get_wtime() - start_time) << " sec." << endl;
     cam.save_to_file("res.bmp");
     sc->parts[0]->trace(dvec3(0), dvec3(0), dvec3(0));
     return 0;
