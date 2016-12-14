@@ -13,6 +13,7 @@
 		785119941DF6FCE800030478 /* image_helper.c in Sources */ = {isa = PBXBuildFile; fileRef = 785119931DF6FCE800030478 /* image_helper.c */; };
 		785119961DF6FCEF00030478 /* SOIL.c in Sources */ = {isa = PBXBuildFile; fileRef = 785119951DF6FCEF00030478 /* SOIL.c */; };
 		785119981DF6FCF500030478 /* stb_image_aug.c in Sources */ = {isa = PBXBuildFile; fileRef = 785119971DF6FCF500030478 /* stb_image_aug.c */; };
+		788486411E016D6E00D465F8 /* libiomp5.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = 788486401E016D6E00D465F8 /* libiomp5.dylib */; };
 		789287491E008944004B33C7 /* Foundation.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 789287481E008944004B33C7 /* Foundation.framework */; };
 		7892874B1E00897D004B33C7 /* OpenGL.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 7892874A1E00897D004B33C7 /* OpenGL.framework */; };
 /* End PBXBuildFile section */
@@ -35,12 +36,12 @@
 		785119771DF6FAC900030478 /* Mashgraph_Task4_RayTracing */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = Mashgraph_Task4_RayTracing; sourceTree = BUILT_PRODUCTS_DIR; };
 		785119811DF6FB2B00030478 /* bin */ = {isa = PBXFileReference; lastKnownFileType = folder; path = bin; sourceTree = "<group>"; };
 		785119821DF6FB2B00030478 /* img */ = {isa = PBXFileReference; lastKnownFileType = folder; path = img; sourceTree = "<group>"; };
-		785119831DF6FB2B00030478 /* Readme.txt */ = {isa = PBXFileReference; lastKnownFileType = text; path = Readme.txt; sourceTree = "<group>"; };
 		785119841DF6FB2B00030478 /* src */ = {isa = PBXFileReference; lastKnownFileType = folder; path = src; sourceTree = "<group>"; };
 		785119911DF6FCE300030478 /* image_DXT.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; name = image_DXT.c; path = Mashgraph_Task4_RayTracing/src/SOIL/image_DXT.c; sourceTree = "<group>"; };
 		785119931DF6FCE800030478 /* image_helper.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; name = image_helper.c; path = Mashgraph_Task4_RayTracing/src/SOIL/image_helper.c; sourceTree = "<group>"; };
 		785119951DF6FCEF00030478 /* SOIL.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; name = SOIL.c; path = Mashgraph_Task4_RayTracing/src/SOIL/SOIL.c; sourceTree = "<group>"; };
 		785119971DF6FCF500030478 /* stb_image_aug.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; name = stb_image_aug.c; path = Mashgraph_Task4_RayTracing/src/SOIL/stb_image_aug.c; sourceTree = "<group>"; };
+		788486401E016D6E00D465F8 /* libiomp5.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = libiomp5.dylib; path = ../../../../../../../usr/local/lib/libiomp5.dylib; sourceTree = "<group>"; };
 		789287481E008944004B33C7 /* Foundation.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Foundation.framework; path = System/Library/Frameworks/Foundation.framework; sourceTree = SDKROOT; };
 		7892874A1E00897D004B33C7 /* OpenGL.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = OpenGL.framework; path = System/Library/Frameworks/OpenGL.framework; sourceTree = SDKROOT; };
 		78CC74B61DFC125B00C6AF6E /* object.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = object.h; path = Mashgraph_Task4_RayTracing/src/object.h; sourceTree = "<group>"; };
@@ -53,6 +54,7 @@
 			files = (
 				7892874B1E00897D004B33C7 /* OpenGL.framework in Frameworks */,
 				789287491E008944004B33C7 /* Foundation.framework in Frameworks */,
+				788486411E016D6E00D465F8 /* libiomp5.dylib in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -88,7 +90,6 @@
 			children = (
 				785119811DF6FB2B00030478 /* bin */,
 				785119821DF6FB2B00030478 /* img */,
-				785119831DF6FB2B00030478 /* Readme.txt */,
 				785119841DF6FB2B00030478 /* src */,
 			);
 			path = Mashgraph_Task4_RayTracing;
@@ -97,6 +98,7 @@
 		789287471E008944004B33C7 /* Frameworks */ = {
 			isa = PBXGroup;
 			children = (
+				788486401E016D6E00D465F8 /* libiomp5.dylib */,
 				7892874A1E00897D004B33C7 /* OpenGL.framework */,
 				789287481E008944004B33C7 /* Foundation.framework */,
 			);
@@ -263,18 +265,14 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				CC = "/usr/bin/clang-3.9";
-				CLANG_CXX_LIBRARY = "libc++";
+				CLANG_CXX_LIBRARY = "compiler-default";
 				CLANG_ENABLE_MODULES = NO;
 				CLANG_MODULES_AUTOLINK = YES;
 				HEADER_SEARCH_PATHS = (
 					"\"$(SRCROOT)/Mashgraph_Task4_RayTracing/src\"",
 					/usr/local/include,
-					/usr/lib/clang/3.9.0/include,
 				);
-				LIBRARY_SEARCH_PATHS = (
-					/usr/local/lib,
-					/usr/lib/clang/3.9.0/lib/darwin,
-				);
+				LIBRARY_SEARCH_PATHS = /usr/local/lib;
 				LINK_WITH_STANDARD_LIBRARIES = YES;
 				OTHER_CFLAGS = "-fopenmp";
 				OTHER_LDFLAGS = (
@@ -289,18 +287,14 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				CC = "/usr/bin/clang-3.9";
-				CLANG_CXX_LIBRARY = "libc++";
+				CLANG_CXX_LIBRARY = "compiler-default";
 				CLANG_ENABLE_MODULES = NO;
 				CLANG_MODULES_AUTOLINK = YES;
 				HEADER_SEARCH_PATHS = (
 					"\"$(SRCROOT)/Mashgraph_Task4_RayTracing/src\"",
 					/usr/local/include,
-					/usr/lib/clang/3.9.0/include,
 				);
-				LIBRARY_SEARCH_PATHS = (
-					/usr/local/lib,
-					/usr/lib/clang/3.9.0/lib/darwin,
-				);
+				LIBRARY_SEARCH_PATHS = /usr/local/lib;
 				LINK_WITH_STANDARD_LIBRARIES = YES;
 				OTHER_CFLAGS = "-fopenmp";
 				OTHER_LDFLAGS = (

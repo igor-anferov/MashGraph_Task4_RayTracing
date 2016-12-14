@@ -4,7 +4,7 @@
 #include <map>
 #include <string>
 
-#include <omp.h>
+#include <libiomp/omp.h>
 
 #include "object.h"
 
@@ -52,12 +52,18 @@ int main(int argc, char** argv) {
     }
     
     object *sc = (object *) new scene;
-    camera cam(dvec3(0,0,1.85), dvec3(1,0,0), dvec3(0,1,0), 50, 1920, 1080, 1, sc);
+    camera cam(dvec3(0,0,1.85), dvec3(1,0,0), dvec3(0,1,0), 50, 300, 300, 1, sc);
     
-    double start_time = omp_get_wtime();
-    cam.draw();
-    cout << endl << "Drawing took " << (omp_get_wtime() - start_time) << " sec." << endl;
+//    double start_time = omp_get_wtime();
+    try {
+        cam.draw();
+    } catch (const char * str) {
+        cout << str << endl;
+    } catch (...) {
+        cout << "UNHANDLED ERROR!!!" << endl;
+    }
+//    cout << endl << "Drawing took " << (omp_get_wtime() - start_time) << " sec." << endl;
     cam.save_to_file("res.bmp");
-    
+    sc->parts[0]->trace(dvec3(0), dvec3(0), dvec3(0));
     return 0;
 }
