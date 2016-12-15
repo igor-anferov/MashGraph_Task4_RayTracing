@@ -57,7 +57,7 @@ public:
     double reflection = 0;
     double refraction = 0;
     vector<object *> parts;
-    map<pair<long, long>,pair<object *, dvec3>> intersections;
+    map<pair<long long, long long>,pair<object *, dvec3>> intersections;
     
     object(string s);
     ~object();
@@ -101,12 +101,12 @@ public:
                 return make_pair(false, dvec3(0));
                 dvec3 p(int_point->x(), int_point->y(), int_point->z());
 #pragma omp critical
-                intersections[make_pair(long(beam_pos.x*1e4+
-                                             beam_pos.y*1e8+
-                                             beam_pos.z*1e12),
-                                        long(beam_dir.x*1e4+
-                                             beam_dir.y*1e8+
-                                             beam_dir.z*1e12))] = make_pair((object *)NULL, p);
+                intersections[make_pair(     (long long)(beam_pos.x*1e6)+
+                                        1e6 *(long long)(beam_pos.y*1e6)+
+                                        1e12*(long long)(beam_pos.z*1e6),
+                                        (long long)(beam_dir.x*1e6)+
+                                        1e6 *(long long)(beam_dir.y*1e6)+
+                                        1e12*(long long)(beam_dir.z*1e6))] = make_pair((object *)NULL, p);
                 return make_pair(true, p);
                 } else if (do_intersect(tr2, ray)) {
                     auto int_opt_point = intersection(tr2, ray);
@@ -115,12 +115,12 @@ public:
                         return make_pair(false, dvec3(0));
                         dvec3 p(int_point->x(), int_point->y(), int_point->z());
 #pragma omp critical
-                        intersections[make_pair(long(beam_pos.x*1e4+
-                                             beam_pos.y*1e8+
-                                             beam_pos.z*1e12),
-                                        long(beam_dir.x*1e4+
-                                             beam_dir.y*1e8+
-                                             beam_dir.z*1e12))] = make_pair((object *)NULL, p);
+                        intersections[make_pair(     (long long)(beam_pos.x*1e6)+
+                                                1e6 *(long long)(beam_pos.y*1e6)+
+                                                1e12*(long long)(beam_pos.z*1e6),
+                                                (long long)(beam_dir.x*1e6)+
+                                                1e6 *(long long)(beam_dir.y*1e6)+
+                                                1e12*(long long)(beam_dir.z*1e6))] = make_pair((object *)NULL, p);
                         return make_pair(true, p);
                         } else
                             return make_pair(false, dvec3(0));
@@ -139,15 +139,21 @@ public:
 #pragma omp critical
         {
             try {
-            int_p = intersections.at(make_pair(long(beam_pos.x*1e4+
-                                                    beam_pos.y*1e8+
-                                                    beam_pos.z*1e12),
-                                               long(beam_dir.x*1e4+
-                                                    beam_dir.y*1e8+
-                                                    beam_dir.z*1e12))).second;
+                int_p = intersections.at(make_pair(     (long long)(beam_pos.x*1e6)+
+                                                   1e6 *(long long)(beam_pos.y*1e6)+
+                                                   1e12*(long long)(beam_pos.z*1e6),
+                                                   (long long)(beam_dir.x*1e6)+
+                                                   1e6 *(long long)(beam_dir.y*1e6)+
+                                                   1e12*(long long)(beam_dir.z*1e6))).second;
+                intersections.erase(make_pair(     (long long)(beam_pos.x*1e6)+
+                                              1e6 *(long long)(beam_pos.y*1e6)+
+                                              1e12*(long long)(beam_pos.z*1e6),
+                                              (long long)(beam_dir.x*1e6)+
+                                              1e6 *(long long)(beam_dir.y*1e6)+
+                                              1e12*(long long)(beam_dir.z*1e6)));
             } catch (...) {
-                cerr << name << "backtrace error!" << endl;
-                exit(-1);
+                cerr << name << " backtrace error!" << endl;
+                throw;
             }
         }
         dvec3 relative_coodrs(int_p  - (position - 0.5 * ( y_dir * y_size + x_dir * x_size )) );
@@ -209,12 +215,12 @@ public:
                 return make_pair(false, dvec3(0));
 #pragma omp critical
             {
-                intersections[make_pair(long(beam_pos.x*1e4+
-                                             beam_pos.y*1e8+
-                                             beam_pos.z*1e12),
-                                        long(beam_dir.x*1e4+
-                                             beam_dir.y*1e8+
-                                             beam_dir.z*1e12))] = make_pair((object *)NULL, dvec3(beam_pos + t * beam_dir));
+                intersections[make_pair(     (long long)(beam_pos.x*1e6)+
+                                        1e6 *(long long)(beam_pos.y*1e6)+
+                                        1e12*(long long)(beam_pos.z*1e6),
+                                        (long long)(beam_dir.x*1e6)+
+                                        1e6 *(long long)(beam_dir.y*1e6)+
+                                        1e12*(long long)(beam_dir.z*1e6))] = make_pair((object *)NULL, dvec3(beam_pos + t * beam_dir));
             }
             return make_pair(true, dvec3(beam_pos + t * beam_dir));
         }
@@ -235,15 +241,21 @@ public:
 #pragma omp critical
         {
             try {
-                int_p = intersections.at(make_pair(long(beam_pos.x*1e4+
-                                                        beam_pos.y*1e8+
-                                                        beam_pos.z*1e12),
-                                                   long(beam_dir.x*1e4+
-                                                        beam_dir.y*1e8+
-                                                        beam_dir.z*1e12))).second;
+                int_p = intersections.at(make_pair(     (long long)(beam_pos.x*1e6)+
+                                                   1e6 *(long long)(beam_pos.y*1e6)+
+                                                   1e12*(long long)(beam_pos.z*1e6),
+                                                   (long long)(beam_dir.x*1e6)+
+                                                   1e6 *(long long)(beam_dir.y*1e6)+
+                                                   1e12*(long long)(beam_dir.z*1e6))).second;
+                intersections.erase(make_pair(     (long long)(beam_pos.x*1e6)+
+                                              1e6 *(long long)(beam_pos.y*1e6)+
+                                              1e12*(long long)(beam_pos.z*1e6),
+                                              (long long)(beam_dir.x*1e6)+
+                                              1e6 *(long long)(beam_dir.y*1e6)+
+                                              1e12*(long long)(beam_dir.z*1e6)));
             } catch (...) {
-                cerr << name << "backtrace error!" << endl;
-                exit(-1);
+                cerr << name << " backtrace error!" << endl;
+                throw;
             }
         }
         dvec3 relative_coodrs(int_p  - position);

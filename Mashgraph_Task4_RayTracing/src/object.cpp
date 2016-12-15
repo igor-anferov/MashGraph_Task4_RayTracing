@@ -46,12 +46,12 @@ pair<bool, dvec3> object::is_intersected_by(dvec3 beam_pos, dvec3 beam_dir) {
     sort(intersect_positions.begin(), intersect_positions.end(), cmp);
 #pragma omp critical
     {
-        intersections[make_pair(long(beam_pos.x*1e4+
-                                     beam_pos.y*1e8+
-                                     beam_pos.z*1e12),
-                                long(beam_dir.x*1e4+
-                                     beam_dir.y*1e8+
-                                     beam_dir.z*1e12))] = make_pair(intersect_positions[0].first, dvec3(0));
+        intersections[make_pair(     (long long)(beam_pos.x*1e6)+
+                                1e6 *(long long)(beam_pos.y*1e6)+
+                                1e12*(long long)(beam_pos.z*1e6),
+                                     (long long)(beam_dir.x*1e6)+
+                                1e6 *(long long)(beam_dir.y*1e6)+
+                                1e12*(long long)(beam_dir.z*1e6))] = make_pair(intersect_positions[0].first, dvec3(0));
     }
     return intersect_positions[0].first->is_intersected_by(beam_pos, beam_dir);
 }
@@ -68,15 +68,21 @@ dvec3 object::backtrace(dvec3 beam_pos, dvec3 beam_dir) {
 #pragma omp critical
     {
         try {
-            int_obj = intersections.at(make_pair(long(beam_pos.x*1e4+
-                                                      beam_pos.y*1e8+
-                                                      beam_pos.z*1e12),
-                                                 long(beam_dir.x*1e4+
-                                                      beam_dir.y*1e8+
-                                                      beam_dir.z*1e12))).first;
+            int_obj = intersections.at(make_pair(     (long long)(beam_pos.x*1e6)+
+                                                 1e6 *(long long)(beam_pos.y*1e6)+
+                                                 1e12*(long long)(beam_pos.z*1e6),
+                                                 (long long)(beam_dir.x*1e6)+
+                                                 1e6 *(long long)(beam_dir.y*1e6)+
+                                                 1e12*(long long)(beam_dir.z*1e6))).first;
+            intersections.erase(make_pair(     (long long)(beam_pos.x*1e6)+
+                                          1e6 *(long long)(beam_pos.y*1e6)+
+                                          1e12*(long long)(beam_pos.z*1e6),
+                                          (long long)(beam_dir.x*1e6)+
+                                          1e6 *(long long)(beam_dir.y*1e6)+
+                                          1e12*(long long)(beam_dir.z*1e6)));
         } catch (...) {
-            cerr << name << "backtrace error!" << endl;
-            exit(-1);
+            cerr << name << " backtrace error!" << endl;
+            throw;
         }
     }
     if (int_obj == NULL) {
@@ -231,9 +237,24 @@ void camera::draw() {
             for (int k=0; k<ssaa; k++) {
                 dvec3 dir = local_zero_i + ss_points[k];
                 dir = normalize(dir);
-                if (scene->is_intersected_by(source, dir).first) {
-                    dvec3 color = scene->backtrace(source, dir);
-                    texture[i][j] += color;
+                int fails = 0;
+                do {
+                    try {
+                        if (scene->is_intersected_by(source, dir).first) {
+                            dvec3 color = scene->backtrace(source, dir);
+                            texture[i][j] += color;
+                        }
+                    } catch (...) {
+                        fails++;
+                        cerr << fails << " time trying to rebacktrace..." << endl;
+                        continue;
+                    }
+                    break;
+                } while (fails < 10);
+                if (fails == 10) {
+                    cerr << "Rebacktrace failed. Use black pixel." << endl;
+                    if (k)
+                        texture[i][j] = texture[i][j] / double(k) * double(k+1);
                 }
             }
             texture[i][j] /= ssaa;

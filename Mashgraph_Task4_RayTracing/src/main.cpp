@@ -53,7 +53,7 @@ int main(int argc, char** argv) {
     
     object *sc = (object *) new scene;
 //    sc->rotate(dvec3(1,0,0), 90);
-    camera cam(dvec3(0,0,1.85), dvec3(1,0,0), dvec3(0,1,0), 50, 512, 512, 1, sc);
+    camera cam(dvec3(0,0,1.85), dvec3(1,0,0), dvec3(0,1,0), 50, 400, 400, 1, sc);
     
     double start_time = omp_get_wtime();
     try {
