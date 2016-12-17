@@ -58,6 +58,7 @@ public:
     double refraction = 0;
     vector<object *> parts;
     map<pair<long long, long long>,pair<object *, dvec3>> intersections;
+    object * main_scene;
     
     object(string s);
     ~object();
@@ -66,6 +67,8 @@ public:
     virtual pair<bool, dvec3> is_intersected_by(dvec3 beam_pos, dvec3 beam_dir);
     virtual void trace(dvec3 color, dvec3 beam_pos, dvec3 beam_dir);
     virtual dvec3 backtrace(dvec3 beam_pos, dvec3 beam_dir);
+    virtual void emit();
+    void set_main_scene(object *);
 };
 
 template <int text_x, int text_y>
@@ -126,12 +129,55 @@ public:
                             return make_pair(false, dvec3(0));
                             }
     
-    void trace(dvec3 colour, dvec3 beam_pos, dvec3 beam_dir) override {
-        for (int i=0; i<text_x; i++) {
-            for (int j=0; j<text_y; j++) {
-                texture[i][j] = color;
+    void trace(dvec3 ray_color, dvec3 beam_pos, dvec3 beam_dir) override {
+        dvec3 int_p;
+#pragma omp critical
+        {
+            try {
+                int_p = intersections.at(make_pair(     (long long)(beam_pos.x*1e6)+
+                                                   1e6 *(long long)(beam_pos.y*1e6)+
+                                                   1e12*(long long)(beam_pos.z*1e6),
+                                                   (long long)(beam_dir.x*1e6)+
+                                                   1e6 *(long long)(beam_dir.y*1e6)+
+                                                   1e12*(long long)(beam_dir.z*1e6))).second;
+                intersections.erase(make_pair(     (long long)(beam_pos.x*1e6)+
+                                              1e6 *(long long)(beam_pos.y*1e6)+
+                                              1e12*(long long)(beam_pos.z*1e6),
+                                              (long long)(beam_dir.x*1e6)+
+                                              1e6 *(long long)(beam_dir.y*1e6)+
+                                              1e12*(long long)(beam_dir.z*1e6)));
+            } catch (...) {
+                cerr << name << " trace error!" << endl;
+                throw;
             }
         }
+        dvec3 relative_coodrs(int_p  - (position - 0.5 * ( y_dir * y_size + x_dir * x_size )) );
+        Plane_3<Cartesian<double>> y_plane(Point_3<Cartesian<double>>(relative_coodrs.x, relative_coodrs.y, relative_coodrs.z),
+                                           Direction_3<Cartesian<double>>(y_dir.x, y_dir.y, y_dir.z));
+        Line_3<Cartesian<double>>   y_line(Point_3<Cartesian<double>>(0,0,0), Point_3<Cartesian<double>>(y_dir.x, y_dir.y, y_dir.z));
+        Plane_3<Cartesian<double>> x_plane(Point_3<Cartesian<double>>(relative_coodrs.x, relative_coodrs.y, relative_coodrs.z),
+                                           Direction_3<Cartesian<double>>(x_dir.x, x_dir.y, x_dir.z));
+        Line_3<Cartesian<double>>   x_line(Point_3<Cartesian<double>>(0,0,0), Point_3<Cartesian<double>>(x_dir.x, x_dir.y, x_dir.z));
+        
+        if (!do_intersect(y_plane, y_line) || !do_intersect(x_plane, x_line))
+        throw "trace() error 1!";
+        
+        auto int_opt_point = intersection(y_plane, y_line);
+        Point_3<Cartesian<double>> *int_point = boost::get<Point_3<Cartesian<double>>>(&*int_opt_point);
+        if (!int_point)
+        throw "trace() error 2!";
+        double y = length(dvec3(int_point->x(), int_point->y(), int_point->z()));
+        
+        auto int_opt_point_x = intersection(x_plane, x_line);
+        Point_3<Cartesian<double>> *int_point_x = boost::get<Point_3<Cartesian<double>>>(&*int_opt_point_x);
+        if (!int_point_x)
+        throw "trace() error 3!";
+        double x = length(dvec3(int_point_x->x(), int_point_x->y(), int_point_x->z()));
+        
+        if (x>x_size || y>y_size)
+        throw "trace() error 4!";
+#pragma omp critical RECT_TEXTURE
+        texture[int((text_x-1)*x)][int((text_y-1)*y)] += color * ray_color;
     }
     
     dvec3 backtrace(dvec3 beam_pos, dvec3 beam_dir) override {
@@ -227,13 +273,51 @@ public:
         return make_pair(false, dvec3(0));
     }
     
-    void trace(dvec3 colour, dvec3 beam_pos, dvec3 beam_dir) override {
-        double maxim=0;
-        for (int i=0; i<text; i++) {
-            for (int j=0; j<text; j++) {
-                texture[i][j] = color;
+    void trace(dvec3 ray_color, dvec3 beam_pos, dvec3 beam_dir) override {
+        dvec3 int_p;
+#pragma omp critical
+        {
+            try {
+                int_p = intersections.at(make_pair(     (long long)(beam_pos.x*1e6)+
+                                                   1e6 *(long long)(beam_pos.y*1e6)+
+                                                   1e12*(long long)(beam_pos.z*1e6),
+                                                   (long long)(beam_dir.x*1e6)+
+                                                   1e6 *(long long)(beam_dir.y*1e6)+
+                                                   1e12*(long long)(beam_dir.z*1e6))).second;
+                intersections.erase(make_pair(     (long long)(beam_pos.x*1e6)+
+                                              1e6 *(long long)(beam_pos.y*1e6)+
+                                              1e12*(long long)(beam_pos.z*1e6),
+                                              (long long)(beam_dir.x*1e6)+
+                                              1e6 *(long long)(beam_dir.y*1e6)+
+                                              1e12*(long long)(beam_dir.z*1e6)));
+            } catch (...) {
+                cerr << name << " trace error!" << endl;
+                throw;
             }
         }
+        dvec3 relative_coodrs(int_p  - position);
+        relative_coodrs = normalize(relative_coodrs);
+        double x = relative_coodrs.x;
+        double y = relative_coodrs.y;
+        double z = relative_coodrs.z;
+        
+        double theta = acos(z);
+        double phi = (atan(y/x));
+        theta += M_PI/2;
+        phi += M_PI/2;
+        if (x<0) {
+            phi += M_PI;
+        }
+        theta /= M_PI;
+        phi /= 2*M_PI;
+        if (theta>1) {
+            theta = 1;
+        }
+        if (phi>1) {
+            phi = 1;
+        }
+#pragma omp critical SPHERE_TEXTURE
+        texture[int((text-1)*theta)][int((text-1)*phi)]+= color*ray_color;
     }
     
     dvec3 backtrace(dvec3 beam_pos, dvec3 beam_dir) override {
@@ -288,15 +372,60 @@ public:
     cornellBox();
     ~cornellBox();
 };
-
+                
 class parallelepiped: object {
 public:
     parallelepiped();
     ~parallelepiped();
 };
 
+template <int text_x, int text_y>
+class LED: object {
+public:
+    LED(string name):object(name) {
+        x_size = text_x / 1000.0;
+        y_size = text_y / 1000.0;
+
+        object *square;
+        
+        square = (object *) new rectangle<text_x, text_y> ("LED_White_Sqr");
+        square->color = dvec3(1,1,1);
+        parts.push_back(square);
+        for (int i=0; i<text_x; i++) {
+            for (int j=0; j<text_y; j++) {
+                ((rectangle<text_x, text_y> *)square)->texture[i][j] = square->color;
+            }
+        }
+    };
+    ~LED();
+    void emit() {
+        static default_random_engine generator;
+        normal_distribution<float> angle (0, 35);
+        uniform_real_distribution<double> x_pos (-x_size/2, x_size/2);
+        uniform_real_distribution<double> y_pos (-y_size/2, y_size/2);
+        uniform_real_distribution<float> plane (0, 180);
+        dvec3 ray_pos = position + y_dir * y_pos(generator) + x_dir * x_pos(generator);
+        dvec3 ray_dir = cross(x_dir, y_dir);
+        float cur_angle = angle(generator);
+        if (cur_angle > 90) {
+            cur_angle = 90;
+        } else if (cur_angle < -90) {
+            cur_angle = -90;
+        }
+        dmat4 rot_matrix = dmat4(glm::rotate(mat4(), cur_angle, vec3(x_dir)));
+        dmat4 rot_matrix2 = dmat4(glm::rotate(mat4(), plane(generator), vec3(ray_dir)));
+        ray_dir = dvec3(rot_matrix * dvec4(ray_dir, 1));
+        ray_dir = dvec3(rot_matrix2 * dvec4(ray_dir, 1));
+        ray_pos += ray_dir*0.00001;
+        if (main_scene->is_intersected_by(ray_pos, ray_dir).first) {
+            main_scene->trace(color, ray_pos, ray_dir);
+        }
+    };
+};
+
 class scene: object {
 public:
+    void light(long primary_rays_count);
     scene();
     ~scene();
 };

@@ -30,6 +30,17 @@ void object::rotate(dvec3 rot_axis, float rot_angle) {
         i->rotate(rot_axis, rot_angle);
 }
 
+void object::emit() {
+    for (object *i: parts)
+    i->emit();
+}
+
+void object::set_main_scene(object *scene) {
+    main_scene = scene;
+    for (object *i: parts)
+    i->set_main_scene(scene);
+}
+
 pair<bool, dvec3> object::is_intersected_by(dvec3 beam_pos, dvec3 beam_dir) {
     pair<bool, dvec3> tmp;
     vector<pair<object *, double>> intersect_positions;
@@ -57,10 +68,42 @@ pair<bool, dvec3> object::is_intersected_by(dvec3 beam_pos, dvec3 beam_dir) {
 }
 
 void object::trace(dvec3 color, dvec3 beam_pos, dvec3 beam_dir) {
-    for (object *i: parts)
-        i->trace(color, dvec3(0), dvec3(0));
-//#pragma omp critical
-//    intersections[make_pair(beam_pos,  beam_dir)].first->trace(color, beam_pos, beam_dir);
+    object * int_obj;
+#pragma omp critical
+    {
+        try {
+            int_obj = intersections.at(make_pair(     (long long)(beam_pos.x*1e6)+
+                                                 1e6 *(long long)(beam_pos.y*1e6)+
+                                                 1e12*(long long)(beam_pos.z*1e6),
+                                                 (long long)(beam_dir.x*1e6)+
+                                                 1e6 *(long long)(beam_dir.y*1e6)+
+                                                 1e12*(long long)(beam_dir.z*1e6))).first;
+            intersections.erase(make_pair(     (long long)(beam_pos.x*1e6)+
+                                          1e6 *(long long)(beam_pos.y*1e6)+
+                                          1e12*(long long)(beam_pos.z*1e6),
+                                          (long long)(beam_dir.x*1e6)+
+                                          1e6 *(long long)(beam_dir.y*1e6)+
+                                          1e12*(long long)(beam_dir.z*1e6)));
+        } catch (...) {
+            cerr << name << " trace error!" << endl;
+            cerr << "Trying to access element" << endl;
+            cerr << (long long)((long long)(beam_pos.x*1e6)+
+                                1e6 *(long long)(beam_pos.y*1e6)+
+                                1e12*(long long)(beam_pos.z*1e6)) << "  " <<
+                    (long long)((long long)(beam_dir.x*1e6)+
+                                1e6 *(long long)(beam_dir.y*1e6)+
+                                1e12*(long long)(beam_dir.z*1e6)) << endl;
+            cerr << "But only available" << endl;
+            for (pair<pair<long long, long long>,pair<object *, dvec3>> tmp: intersections) {
+                cerr << tmp.first.first << "  " << tmp.first.second << endl;
+            }
+            throw;
+        }
+    }
+    if (int_obj == NULL) {
+        throw "ERROR! Trying to trace ray that wasn't checked";
+    }
+    int_obj->trace(color, beam_pos, beam_dir);
 }
 
 dvec3 object::backtrace(dvec3 beam_pos, dvec3 beam_dir) {
@@ -122,9 +165,6 @@ cornellBox::cornellBox():object("cornellBox") {
     square->rotate(dvec3(1,0,0), 270);
     square->color = dvec3(1,0.6,0.3);
     parts.push_back(square);
-    
-    for (object *i: parts)
-        i->trace(dvec3(0), dvec3(0), dvec3(0));
 }
 
 parallelepiped::parallelepiped():object("Parallelepiped") {
@@ -163,15 +203,18 @@ parallelepiped::parallelepiped():object("Parallelepiped") {
     square->translate(dvec3(0,-0.325,0));
     square->color = dvec3(0.57,0.46,0.18);
     parts.push_back(square);
-    
-    for (object *i: parts)
-        i->trace(dvec3(0), dvec3(0), dvec3(0));
 }
 
 scene::scene():object("Scene") {
     object *figure;
     
     figure = (object *) new cornellBox;
+    parts.push_back(figure);
+    
+    figure = (object *) new LED<100,100>("Flashlight");
+    figure->color = dvec3(1,1,1);
+    figure->rotate(dvec3(1,0,0), 90);
+    figure->translate(dvec3(0,0.49999,0));
     parts.push_back(figure);
     
     figure = (object *) new parallelepiped;
@@ -182,9 +225,17 @@ scene::scene():object("Scene") {
     figure = (object *) new sphere<400>("Sphere");
     figure->color = dvec3(0.85,0.72,0.35);
     figure->translate(dvec3(0.220,-0.300,-0.050));
-    figure->trace(dvec3(), dvec3(), dvec3());
 
     parts.push_back(figure);
+    
+    set_main_scene(this);
+}
+
+void scene::light(long primary_rays_count) {
+#pragma omp parallel for schedule(dynamic)
+    for (long i=0; i<primary_rays_count; i++) {
+        emit();
+    }
 }
 
 tex::~tex() {
