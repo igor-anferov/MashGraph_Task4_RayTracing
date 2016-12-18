@@ -400,18 +400,16 @@ public:
     ~LED();
     void emit() {
         static default_random_engine generator;
-        normal_distribution<float> angle (0, 35);
+        normal_distribution<float> angle (0, 120);
         uniform_real_distribution<double> x_pos (-x_size/2, x_size/2);
         uniform_real_distribution<double> y_pos (-y_size/2, y_size/2);
         uniform_real_distribution<float> plane (0, 180);
         dvec3 ray_pos = position + y_dir * y_pos(generator) + x_dir * x_pos(generator);
         dvec3 ray_dir = cross(x_dir, y_dir);
-        float cur_angle = angle(generator);
-        if (cur_angle > 90) {
-            cur_angle = 90;
-        } else if (cur_angle < -90) {
-            cur_angle = -90;
-        }
+        float cur_angle;
+        do {
+            cur_angle = angle(generator);
+        } while (cur_angle > 90 || cur_angle < -90);
         dmat4 rot_matrix = dmat4(glm::rotate(mat4(), cur_angle, vec3(x_dir)));
         dmat4 rot_matrix2 = dmat4(glm::rotate(mat4(), plane(generator), vec3(ray_dir)));
         ray_dir = dvec3(rot_matrix * dvec4(ray_dir, 1));
@@ -438,6 +436,7 @@ public:
     ~tex();
     void init(int xx, int yy);
     dvec3* operator[] (int i);
+    double get_average();
 };
 
 class camera {

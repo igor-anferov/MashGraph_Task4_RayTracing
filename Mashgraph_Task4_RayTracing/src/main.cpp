@@ -53,17 +53,18 @@ int main(int argc, char** argv) {
     
     object *sc = (object *) new scene;
 //    sc->rotate(dvec3(1,0,0), 90);
-    camera cam(dvec3(0,0,1.85), dvec3(1,0,0), dvec3(0,1,0), 50, 2000, 2000, 1, sc);
     
     double start_time = omp_get_wtime();
     try {
-        ((scene *)sc)->light(10000000);
+        ((scene *)sc)->light(5000000);
     } catch (const char * str) {
         cout << str << endl;
     } catch (...) {
         cout << "UNHANDLED ERROR!!!" << endl;
     }
     cout << endl << "Lighting took " << (omp_get_wtime() - start_time) << " sec." << endl;
+    
+    camera cam(dvec3(0,0,1.85), dvec3(1,0,0), dvec3(0,1,0), 50, 400, 400, 1, sc);
     
     start_time = omp_get_wtime();
     try {

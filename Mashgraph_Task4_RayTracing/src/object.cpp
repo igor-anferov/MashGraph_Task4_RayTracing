@@ -252,6 +252,19 @@ dvec3* tex::operator[] (int i) {
         throw "ERROR! Trying to access to uninitialized tex!";
     return & data[ y * i ];
 }
+double tex::get_average() {
+    long double sum = 0;
+    long not_black = 0;
+    for (long i=0; i<x*y; i++) {
+        dvec3 cur = data[i];
+        double light = 0.2125 * cur.r + 0.7154 * cur.g + 0.0721 * cur.b;
+        if (light > 1e-3) {
+            not_black++;
+            sum += light;
+        }
+    }
+    return sum/not_black;
+}
 
 
 camera::camera(dvec3 p, dvec3 x_d, dvec3 y_d, double f_l, int x_r, int y_r, int ss, object * sc): position(p), x_dir(x_d), y_dir(y_d), focal_length(f_l), x_res(x_r), y_res(y_r), ssaa(ss), scene(sc) {
@@ -316,11 +329,12 @@ void camera::draw() {
 
 void camera::save_to_file(string file) {
     vector<unsigned char> map;
+    double norm = texture.get_average();
     for (int j=y_res-1; j>=0; j--) {
         for (int i=0; i<x_res; i++) {
-            map.push_back((unsigned char)(texture[i][j].r * 255));
-            map.push_back((unsigned char)(texture[i][j].g * 255));
-            map.push_back((unsigned char)(texture[i][j].b * 255));
+            map.push_back((unsigned char)(MIN2(texture[i][j].r / norm * 255, 255)));
+            map.push_back((unsigned char)(MIN2(texture[i][j].g / norm * 255, 255)));
+            map.push_back((unsigned char)(MIN2(texture[i][j].b / norm * 255, 255)));
         }
     }
     SOIL_save_image ( file.c_str(), SOIL_SAVE_TYPE_BMP, x_res, y_res, SOIL_LOAD_RGB, map.data() );
