@@ -43,7 +43,18 @@ using namespace glm;
 
 class object;
 
-bool cmp(pair<object *, double> a, pair<object *, double> b);
+struct intersect_info {
+    bool res;
+    dvec3 point;
+    object *obj;
+    
+    intersect_info();
+    intersect_info(bool r, dvec3 p, void *o);
+};
+
+double brightness(dvec3 cur);
+
+bool cmp(pair<intersect_info, double> a, pair<intersect_info, double> b);
 
 class object {
 public:
@@ -54,19 +65,19 @@ public:
     dvec3 color = dvec3(0,1,0);
     double x_size = 1;
     double y_size = 1;
+    double diffuse = 0.4;
     double reflection = 0;
     double refraction = 0;
     vector<object *> parts;
-    map<pair<long long, long long>,pair<object *, dvec3>> intersections;
     object * main_scene;
     
     object(string s);
     ~object();
     virtual void translate(dvec3 trans);
     virtual void rotate(dvec3 rot_axis, float rot_angle);
-    virtual pair<bool, dvec3> is_intersected_by(dvec3 beam_pos, dvec3 beam_dir);
-    virtual void trace(dvec3 color, dvec3 beam_pos, dvec3 beam_dir);
-    virtual dvec3 backtrace(dvec3 beam_pos, dvec3 beam_dir);
+    virtual intersect_info is_intersected_by(dvec3 beam_pos, dvec3 beam_dir);
+    virtual void trace(dvec3 color, dvec3 beam_pos, dvec3 beam_dir, intersect_info);
+    virtual dvec3 backtrace(dvec3 beam_pos, dvec3 beam_dir, intersect_info);
     virtual void emit();
     void set_main_scene(object *);
 };
@@ -81,7 +92,7 @@ public:
         y_size = text_y / 1000.0;
     }
     
-    pair<bool, dvec3> is_intersected_by(dvec3 beam_pos, dvec3 beam_dir) override {
+    intersect_info is_intersected_by(dvec3 beam_pos, dvec3 beam_dir) override {
         
         dvec3 p1 = position + 0.5 * (  y_dir * y_size + x_dir * x_size );
         dvec3 p2 = position + 0.5 * ( -y_dir * y_size - x_dir * x_size );
@@ -101,56 +112,22 @@ public:
             auto int_opt_point = intersection(tr1, ray);
             Point_3<Cartesian<double>> *int_point = boost::get<Point_3<Cartesian<double>>>(&*int_opt_point);
             if (!int_point)
-                return make_pair(false, dvec3(0));
-                dvec3 p(int_point->x(), int_point->y(), int_point->z());
-#pragma omp critical
-                intersections[make_pair(     (long long)(beam_pos.x*1e6)+
-                                        1e6 *(long long)(beam_pos.y*1e6)+
-                                        1e12*(long long)(beam_pos.z*1e6),
-                                        (long long)(beam_dir.x*1e6)+
-                                        1e6 *(long long)(beam_dir.y*1e6)+
-                                        1e12*(long long)(beam_dir.z*1e6))] = make_pair((object *)NULL, p);
-                return make_pair(true, p);
-                } else if (do_intersect(tr2, ray)) {
-                    auto int_opt_point = intersection(tr2, ray);
-                    Point_3<Cartesian<double>> *int_point = boost::get<Point_3<Cartesian<double>>>(&*int_opt_point);
-                    if (!int_point)
-                        return make_pair(false, dvec3(0));
-                        dvec3 p(int_point->x(), int_point->y(), int_point->z());
-#pragma omp critical
-                        intersections[make_pair(     (long long)(beam_pos.x*1e6)+
-                                                1e6 *(long long)(beam_pos.y*1e6)+
-                                                1e12*(long long)(beam_pos.z*1e6),
-                                                (long long)(beam_dir.x*1e6)+
-                                                1e6 *(long long)(beam_dir.y*1e6)+
-                                                1e12*(long long)(beam_dir.z*1e6))] = make_pair((object *)NULL, p);
-                        return make_pair(true, p);
-                        } else
-                            return make_pair(false, dvec3(0));
-                            }
+            return intersect_info();
+            dvec3 p(int_point->x(), int_point->y(), int_point->z());
+            return intersect_info(true, p, this);
+        } else if (do_intersect(tr2, ray)) {
+            auto int_opt_point = intersection(tr2, ray);
+            Point_3<Cartesian<double>> *int_point = boost::get<Point_3<Cartesian<double>>>(&*int_opt_point);
+            if (!int_point)
+            return intersect_info();
+            dvec3 p(int_point->x(), int_point->y(), int_point->z());
+            return intersect_info(true, p, this);
+        } else
+        return intersect_info();
+    }
     
-    void trace(dvec3 ray_color, dvec3 beam_pos, dvec3 beam_dir) override {
-        dvec3 int_p;
-#pragma omp critical
-        {
-            try {
-                int_p = intersections.at(make_pair(     (long long)(beam_pos.x*1e6)+
-                                                   1e6 *(long long)(beam_pos.y*1e6)+
-                                                   1e12*(long long)(beam_pos.z*1e6),
-                                                   (long long)(beam_dir.x*1e6)+
-                                                   1e6 *(long long)(beam_dir.y*1e6)+
-                                                   1e12*(long long)(beam_dir.z*1e6))).second;
-                intersections.erase(make_pair(     (long long)(beam_pos.x*1e6)+
-                                              1e6 *(long long)(beam_pos.y*1e6)+
-                                              1e12*(long long)(beam_pos.z*1e6),
-                                              (long long)(beam_dir.x*1e6)+
-                                              1e6 *(long long)(beam_dir.y*1e6)+
-                                              1e12*(long long)(beam_dir.z*1e6)));
-            } catch (...) {
-                cerr << name << " trace error!" << endl;
-                throw;
-            }
-        }
+    void trace(dvec3 ray_color, dvec3 beam_pos, dvec3 beam_dir, intersect_info int_inf) override {
+        dvec3 int_p = int_inf.point;
         dvec3 relative_coodrs(int_p  - (position - 0.5 * ( y_dir * y_size + x_dir * x_size )) );
         Plane_3<Cartesian<double>> y_plane(Point_3<Cartesian<double>>(relative_coodrs.x, relative_coodrs.y, relative_coodrs.z),
                                            Direction_3<Cartesian<double>>(y_dir.x, y_dir.y, y_dir.z));
@@ -176,32 +153,37 @@ public:
         
         if (x>x_size || y>y_size)
         throw "trace() error 4!";
+        
+        dvec3 self_col = color * ray_color * (1 - diffuse - reflection - refraction);
 #pragma omp critical RECT_TEXTURE
-        texture[int((text_x-1)*x)][int((text_y-1)*y)] += color * ray_color;
-    }
-    
-    dvec3 backtrace(dvec3 beam_pos, dvec3 beam_dir) override {
-        dvec3 int_p;
-#pragma omp critical
-        {
-            try {
-                int_p = intersections.at(make_pair(     (long long)(beam_pos.x*1e6)+
-                                                   1e6 *(long long)(beam_pos.y*1e6)+
-                                                   1e12*(long long)(beam_pos.z*1e6),
-                                                   (long long)(beam_dir.x*1e6)+
-                                                   1e6 *(long long)(beam_dir.y*1e6)+
-                                                   1e12*(long long)(beam_dir.z*1e6))).second;
-                intersections.erase(make_pair(     (long long)(beam_pos.x*1e6)+
-                                              1e6 *(long long)(beam_pos.y*1e6)+
-                                              1e12*(long long)(beam_pos.z*1e6),
-                                              (long long)(beam_dir.x*1e6)+
-                                              1e6 *(long long)(beam_dir.y*1e6)+
-                                              1e12*(long long)(beam_dir.z*1e6)));
-            } catch (...) {
-                cerr << name << " backtrace error!" << endl;
-                throw;
+        texture[int((text_x-1)*x)][int((text_y-1)*y)] += self_col;
+        
+        dvec3 diff_col = color * ray_color * diffuse;
+        
+        if (brightness(diff_col) > 0.01) {
+            static default_random_engine generator;
+            normal_distribution<float> angle (0, 120);
+            uniform_real_distribution<float> plane (0, 180);
+            dvec3 ray_pos = int_p;
+            dvec3 ray_dir = cross(x_dir, y_dir);
+            float cur_angle;
+            do {
+                cur_angle = angle(generator);
+            } while (cur_angle > 90 || cur_angle < -90);
+            dmat4 rot_matrix = dmat4(glm::rotate(mat4(), cur_angle, vec3(x_dir)));
+            dmat4 rot_matrix2 = dmat4(glm::rotate(mat4(), plane(generator), vec3(ray_dir)));
+            ray_dir = dvec3(rot_matrix * dvec4(ray_dir, 1));
+            ray_dir = dvec3(rot_matrix2 * dvec4(ray_dir, 1));
+            ray_pos += ray_dir*0.00001;
+            intersect_info tmp = main_scene->is_intersected_by(ray_pos, ray_dir);
+            if (tmp.res) {
+                tmp.obj->trace(diff_col, ray_pos, ray_dir, tmp);
             }
         }
+    }
+    
+    dvec3 backtrace(dvec3 beam_pos, dvec3 beam_dir, intersect_info int_inf) override {
+        dvec3 int_p = int_inf.point;
         dvec3 relative_coodrs(int_p  - (position - 0.5 * ( y_dir * y_size + x_dir * x_size )) );
         Plane_3<Cartesian<double>> y_plane(Point_3<Cartesian<double>>(relative_coodrs.x, relative_coodrs.y, relative_coodrs.z),
                                            Direction_3<Cartesian<double>>(y_dir.x, y_dir.y, y_dir.z));
@@ -242,7 +224,7 @@ public:
         y_size = text / 1000.0;
     }
     
-    pair<bool, dvec3> is_intersected_by(dvec3 beam_pos, dvec3 beam_dir) override {
+    intersect_info is_intersected_by(dvec3 beam_pos, dvec3 beam_dir) override {
         dvec3 k = beam_pos - position;
         double b = dot(k,beam_dir);
         double c = dot(k,k) - (x_size/2)*(x_size/2);
@@ -258,43 +240,14 @@ public:
             
             double t = (min_t >= 0) ? min_t : max_t;
             if (t<=0)
-                return make_pair(false, dvec3(0));
-#pragma omp critical
-            {
-                intersections[make_pair(     (long long)(beam_pos.x*1e6)+
-                                        1e6 *(long long)(beam_pos.y*1e6)+
-                                        1e12*(long long)(beam_pos.z*1e6),
-                                        (long long)(beam_dir.x*1e6)+
-                                        1e6 *(long long)(beam_dir.y*1e6)+
-                                        1e12*(long long)(beam_dir.z*1e6))] = make_pair((object *)NULL, dvec3(beam_pos + t * beam_dir));
-            }
-            return make_pair(true, dvec3(beam_pos + t * beam_dir));
+                return intersect_info();
+            return intersect_info(true, dvec3(beam_pos + t * beam_dir), this);
         }
-        return make_pair(false, dvec3(0));
+        return intersect_info();
     }
     
-    void trace(dvec3 ray_color, dvec3 beam_pos, dvec3 beam_dir) override {
-        dvec3 int_p;
-#pragma omp critical
-        {
-            try {
-                int_p = intersections.at(make_pair(     (long long)(beam_pos.x*1e6)+
-                                                   1e6 *(long long)(beam_pos.y*1e6)+
-                                                   1e12*(long long)(beam_pos.z*1e6),
-                                                   (long long)(beam_dir.x*1e6)+
-                                                   1e6 *(long long)(beam_dir.y*1e6)+
-                                                   1e12*(long long)(beam_dir.z*1e6))).second;
-                intersections.erase(make_pair(     (long long)(beam_pos.x*1e6)+
-                                              1e6 *(long long)(beam_pos.y*1e6)+
-                                              1e12*(long long)(beam_pos.z*1e6),
-                                              (long long)(beam_dir.x*1e6)+
-                                              1e6 *(long long)(beam_dir.y*1e6)+
-                                              1e12*(long long)(beam_dir.z*1e6)));
-            } catch (...) {
-                cerr << name << " trace error!" << endl;
-                throw;
-            }
-        }
+    void trace(dvec3 ray_color, dvec3 beam_pos, dvec3 beam_dir, intersect_info int_inf) override {
+        dvec3 int_p = int_inf.point;
         dvec3 relative_coodrs(int_p  - position);
         relative_coodrs = normalize(relative_coodrs);
         double x = relative_coodrs.x;
@@ -316,32 +269,37 @@ public:
         if (phi>1) {
             phi = 1;
         }
+        
+        dvec3 self_col = color * ray_color * (1 - diffuse - reflection - refraction);
 #pragma omp critical SPHERE_TEXTURE
-        texture[int((text-1)*theta)][int((text-1)*phi)]+= color*ray_color;
-    }
-    
-    dvec3 backtrace(dvec3 beam_pos, dvec3 beam_dir) override {
-        dvec3 int_p;
-#pragma omp critical
-        {
-            try {
-                int_p = intersections.at(make_pair(     (long long)(beam_pos.x*1e6)+
-                                                   1e6 *(long long)(beam_pos.y*1e6)+
-                                                   1e12*(long long)(beam_pos.z*1e6),
-                                                   (long long)(beam_dir.x*1e6)+
-                                                   1e6 *(long long)(beam_dir.y*1e6)+
-                                                   1e12*(long long)(beam_dir.z*1e6))).second;
-                intersections.erase(make_pair(     (long long)(beam_pos.x*1e6)+
-                                              1e6 *(long long)(beam_pos.y*1e6)+
-                                              1e12*(long long)(beam_pos.z*1e6),
-                                              (long long)(beam_dir.x*1e6)+
-                                              1e6 *(long long)(beam_dir.y*1e6)+
-                                              1e12*(long long)(beam_dir.z*1e6)));
-            } catch (...) {
-                cerr << name << " backtrace error!" << endl;
-                throw;
+        texture[int((text-1)*theta)][int((text-1)*phi)]+= self_col;
+        
+        dvec3 diff_col = color * ray_color * diffuse;
+        
+        if (brightness(diff_col) > 0.01) {
+            static default_random_engine generator;
+            normal_distribution<float> angle (0, 120);
+            uniform_real_distribution<float> plane (0, 180);
+            dvec3 ray_pos = int_p;
+            dvec3 ray_dir = normalize(ray_pos - position);
+            float cur_angle;
+            do {
+                cur_angle = angle(generator);
+            } while (cur_angle > 90 || cur_angle < -90);
+            dmat4 rot_matrix = dmat4(glm::rotate(mat4(), cur_angle, vec3(x_dir)));
+            dmat4 rot_matrix2 = dmat4(glm::rotate(mat4(), plane(generator), vec3(ray_dir)));
+            ray_dir = dvec3(rot_matrix * dvec4(ray_dir, 1));
+            ray_dir = dvec3(rot_matrix2 * dvec4(ray_dir, 1));
+            ray_pos += ray_dir*0.00001;
+            intersect_info tmp = main_scene->is_intersected_by(ray_pos, ray_dir);
+            if (tmp.res) {
+                tmp.obj->trace(diff_col, ray_pos, ray_dir, tmp);
             }
         }
+    }
+    
+    dvec3 backtrace(dvec3 beam_pos, dvec3 beam_dir, intersect_info int_inf) override {
+        dvec3 int_p = int_inf.point;
         dvec3 relative_coodrs(int_p  - position);
         relative_coodrs = normalize(relative_coodrs);
         double x = relative_coodrs.x;
@@ -415,8 +373,9 @@ public:
         ray_dir = dvec3(rot_matrix * dvec4(ray_dir, 1));
         ray_dir = dvec3(rot_matrix2 * dvec4(ray_dir, 1));
         ray_pos += ray_dir*0.00001;
-        if (main_scene->is_intersected_by(ray_pos, ray_dir).first) {
-            main_scene->trace(color, ray_pos, ray_dir);
+        intersect_info tmp = main_scene->is_intersected_by(ray_pos, ray_dir);
+        if (tmp.res) {
+            tmp.obj->trace(color, ray_pos, ray_dir, tmp);
         }
     };
 };

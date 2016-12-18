@@ -56,7 +56,7 @@ int main(int argc, char** argv) {
     
     double start_time = omp_get_wtime();
     try {
-        ((scene *)sc)->light(5000000);
+        ((scene *)sc)->light(200000000);
     } catch (const char * str) {
         cout << str << endl;
     } catch (...) {
@@ -64,7 +64,7 @@ int main(int argc, char** argv) {
     }
     cout << endl << "Lighting took " << (omp_get_wtime() - start_time) << " sec." << endl;
     
-    camera cam(dvec3(0,0,1.85), dvec3(1,0,0), dvec3(0,1,0), 50, 400, 400, 1, sc);
+    camera cam(dvec3(0,0,1.85), dvec3(1,0,0), dvec3(0,1,0), 50, 4000, 4000, 8, sc);
     
     start_time = omp_get_wtime();
     try {

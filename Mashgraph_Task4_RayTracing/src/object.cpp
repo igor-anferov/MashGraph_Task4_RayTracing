@@ -1,7 +1,23 @@
 #include "object.h"
 
-bool cmp(pair<object *, double> a, pair<object *, double> b) {
+double brightness(dvec3 cur) {
+    return 0.2125 * cur.r + 0.7154 * cur.g + 0.0721 * cur.b;
+}
+
+bool cmp(pair<intersect_info, double> a, pair<intersect_info, double> b) {
     return a.second < b.second;
+}
+
+intersect_info::intersect_info(bool r, dvec3 p, void *o) {
+    res = r;
+    point = p;
+    obj = (object *) o;
+}
+
+intersect_info::intersect_info() {
+    res = false;
+    point = dvec3(0);
+    obj = NULL;
 }
 
 void object::translate(dvec3 trans) {
@@ -41,97 +57,29 @@ void object::set_main_scene(object *scene) {
     i->set_main_scene(scene);
 }
 
-pair<bool, dvec3> object::is_intersected_by(dvec3 beam_pos, dvec3 beam_dir) {
-    pair<bool, dvec3> tmp;
-    vector<pair<object *, double>> intersect_positions;
+intersect_info object::is_intersected_by(dvec3 beam_pos, dvec3 beam_dir) {
+    intersect_info tmp;
+    vector<pair<intersect_info, double>> intersect_positions;
     for (object *i: parts) {
         tmp = i->is_intersected_by(beam_pos, beam_dir);
-        if (!tmp.first) {
+        if (!tmp.res) {
             continue;
         }
-        intersect_positions.push_back(make_pair(i, length(tmp.second - beam_pos)));
+        intersect_positions.push_back(make_pair(tmp, length(tmp.point - beam_pos)));
     }
     if (intersect_positions.empty()) {
-        return make_pair(false, dvec3(0));
+        return intersect_info(false, dvec3(0), NULL);
     }
     sort(intersect_positions.begin(), intersect_positions.end(), cmp);
-#pragma omp critical
-    {
-        intersections[make_pair(     (long long)(beam_pos.x*1e6)+
-                                1e6 *(long long)(beam_pos.y*1e6)+
-                                1e12*(long long)(beam_pos.z*1e6),
-                                     (long long)(beam_dir.x*1e6)+
-                                1e6 *(long long)(beam_dir.y*1e6)+
-                                1e12*(long long)(beam_dir.z*1e6))] = make_pair(intersect_positions[0].first, dvec3(0));
-    }
-    return intersect_positions[0].first->is_intersected_by(beam_pos, beam_dir);
+    return intersect_positions[0].first;
 }
 
-void object::trace(dvec3 color, dvec3 beam_pos, dvec3 beam_dir) {
-    object * int_obj;
-#pragma omp critical
-    {
-        try {
-            int_obj = intersections.at(make_pair(     (long long)(beam_pos.x*1e6)+
-                                                 1e6 *(long long)(beam_pos.y*1e6)+
-                                                 1e12*(long long)(beam_pos.z*1e6),
-                                                 (long long)(beam_dir.x*1e6)+
-                                                 1e6 *(long long)(beam_dir.y*1e6)+
-                                                 1e12*(long long)(beam_dir.z*1e6))).first;
-            intersections.erase(make_pair(     (long long)(beam_pos.x*1e6)+
-                                          1e6 *(long long)(beam_pos.y*1e6)+
-                                          1e12*(long long)(beam_pos.z*1e6),
-                                          (long long)(beam_dir.x*1e6)+
-                                          1e6 *(long long)(beam_dir.y*1e6)+
-                                          1e12*(long long)(beam_dir.z*1e6)));
-        } catch (...) {
-            cerr << name << " trace error!" << endl;
-            cerr << "Trying to access element" << endl;
-            cerr << (long long)((long long)(beam_pos.x*1e6)+
-                                1e6 *(long long)(beam_pos.y*1e6)+
-                                1e12*(long long)(beam_pos.z*1e6)) << "  " <<
-                    (long long)((long long)(beam_dir.x*1e6)+
-                                1e6 *(long long)(beam_dir.y*1e6)+
-                                1e12*(long long)(beam_dir.z*1e6)) << endl;
-            cerr << "But only available" << endl;
-            for (pair<pair<long long, long long>,pair<object *, dvec3>> tmp: intersections) {
-                cerr << tmp.first.first << "  " << tmp.first.second << endl;
-            }
-            throw;
-        }
-    }
-    if (int_obj == NULL) {
-        throw "ERROR! Trying to trace ray that wasn't checked";
-    }
-    int_obj->trace(color, beam_pos, beam_dir);
+void object::trace(dvec3 color, dvec3 beam_pos, dvec3 beam_dir, intersect_info i) {
+    throw "ERROR! Calling trace from intermediate class " + name;
 }
 
-dvec3 object::backtrace(dvec3 beam_pos, dvec3 beam_dir) {
-    object * int_obj;
-#pragma omp critical
-    {
-        try {
-            int_obj = intersections.at(make_pair(     (long long)(beam_pos.x*1e6)+
-                                                 1e6 *(long long)(beam_pos.y*1e6)+
-                                                 1e12*(long long)(beam_pos.z*1e6),
-                                                 (long long)(beam_dir.x*1e6)+
-                                                 1e6 *(long long)(beam_dir.y*1e6)+
-                                                 1e12*(long long)(beam_dir.z*1e6))).first;
-            intersections.erase(make_pair(     (long long)(beam_pos.x*1e6)+
-                                          1e6 *(long long)(beam_pos.y*1e6)+
-                                          1e12*(long long)(beam_pos.z*1e6),
-                                          (long long)(beam_dir.x*1e6)+
-                                          1e6 *(long long)(beam_dir.y*1e6)+
-                                          1e12*(long long)(beam_dir.z*1e6)));
-        } catch (...) {
-            cerr << name << " backtrace error!" << endl;
-            throw;
-        }
-    }
-    if (int_obj == NULL) {
-        throw "ERROR! Trying to backtrace ray that wasn't checked";
-    }
-    return int_obj->backtrace(beam_pos, beam_dir);
+dvec3 object::backtrace(dvec3 beam_pos, dvec3 beam_dir, intersect_info i) {
+    throw "ERROR! Calling backtrace from intermediate class " + name;
 }
 
 cornellBox::cornellBox():object("cornellBox") {
@@ -257,7 +205,7 @@ double tex::get_average() {
     long not_black = 0;
     for (long i=0; i<x*y; i++) {
         dvec3 cur = data[i];
-        double light = 0.2125 * cur.r + 0.7154 * cur.g + 0.0721 * cur.b;
+        double light = brightness(cur);
         if (light > 1e-3) {
             not_black++;
             sum += light;
@@ -301,24 +249,10 @@ void camera::draw() {
             for (int k=0; k<ssaa; k++) {
                 dvec3 dir = local_zero_i + ss_points[k];
                 dir = normalize(dir);
-                int fails = 0;
-                do {
-                    try {
-                        if (scene->is_intersected_by(source, dir).first) {
-                            dvec3 color = scene->backtrace(source, dir);
-                            texture[i][j] += color;
-                        }
-                    } catch (...) {
-                        fails++;
-                        cerr << fails << " time trying to rebacktrace..." << endl;
-                        continue;
-                    }
-                    break;
-                } while (fails < 10);
-                if (fails == 10) {
-                    cerr << "Rebacktrace failed. Use black pixel." << endl;
-                    if (k)
-                        texture[i][j] = texture[i][j] / double(k) * double(k+1);
+                intersect_info tmp = scene->is_intersected_by(source, dir);
+                if (tmp.res) {
+                    dvec3 color = tmp.obj->backtrace(source, dir, tmp);
+                    texture[i][j] += color;
                 }
             }
             texture[i][j] /= ssaa;
@@ -329,7 +263,7 @@ void camera::draw() {
 
 void camera::save_to_file(string file) {
     vector<unsigned char> map;
-    double norm = texture.get_average();
+    double norm = texture.get_average()*2;
     for (int j=y_res-1; j>=0; j--) {
         for (int i=0; i<x_res; i++) {
             map.push_back((unsigned char)(MIN2(texture[i][j].r / norm * 255, 255)));
