@@ -41,6 +41,8 @@ using namespace CGAL;
 using namespace std;
 using namespace glm;
 
+extern map<string, double> parameters;
+
 class object;
 
 struct intersect_info {
@@ -65,7 +67,7 @@ public:
     dvec3 color = dvec3(0,1,0);
     double x_size = 1;
     double y_size = 1;
-    double diffuse = 0.4;
+    double diffuse = 0.7;
     double reflection = 0;
     double refraction = 0;
     vector<object *> parts;
@@ -348,6 +350,7 @@ public:
         
         square = (object *) new rectangle<text_x, text_y> ("LED_White_Sqr");
         square->color = dvec3(1,1,1);
+        square->diffuse = 0.99;
         parts.push_back(square);
         for (int i=0; i<text_x; i++) {
             for (int j=0; j<text_y; j++) {

@@ -10,23 +10,44 @@
 
 using namespace std;
 
+map<string, double> parameters;
+
 int main(int argc, char** argv) {
-    map<string, int> parameters;
+    parameters[ "camera_position_x" ] = 0;
+    parameters[ "camera_position_y" ] = 0;
+    parameters[ "camera_position_z" ] = 1850;
+    parameters[ "camera_right_x" ] = 1;
+    parameters[ "camera_right_y" ] = 0;
+    parameters[ "camera_right_z" ] = 0;
+    parameters[ "camera_up_x" ] = 0;
+    parameters[ "camera_up_y" ] = 1;
+    parameters[ "camera_up_z" ] = 0;
+    parameters[ "LED_position_x" ] = 0;
+    parameters[ "LED_position_y" ] = 499.9;
+    parameters[ "LED_position_z" ] = 0;
+    parameters[ "LED_x_side_dir_x" ] = 1;
+    parameters[ "LED_x_side_dir_y" ] = 0;
+    parameters[ "LED_x_side_dir_z" ] = 0;
+    parameters[ "LED_y_side_dir_x" ] = 0;
+    parameters[ "LED_y_side_dir_y" ] = 0;
+    parameters[ "LED_y_side_dir_z" ] = 1;
+    parameters[ "LED_color_R" ] = 255;
+    parameters[ "LED_color_G" ] = 255;
+    parameters[ "LED_color_B" ] = 255;
+    parameters[ "focal_length" ] = 50;
+    parameters[ "res_w" ] = 512;
+    parameters[ "res_h" ] = 512;
+    parameters[ "SSAA" ] = 1;
+    parameters[ "primary_rays_count" ] = 1000000;
     
-    parameters[ "LED_side"          ] = 50;
-    parameters[ "camera_position_x" ] = 50;
-    parameters[ "focal_length"      ] = 100;
-    parameters[ "res_h"             ] = 1080;
-    parameters[ "res_w"             ] = 1920;
-    
-    if (argc == 2) {
+    if (argc == 3) {
         fstream configfile(argv[1]);
         if (!configfile) {
             cout << "Configuration file opening failed. Using stardard parameters:" << endl << endl;
         }
         string curstr;
         string parameter;
-        int value;
+        double value;
         int parameters_count = 0;
         getline(configfile, curstr);
         while (configfile) {
@@ -52,11 +73,10 @@ int main(int argc, char** argv) {
     }
     
     object *sc = (object *) new scene;
-//    sc->rotate(dvec3(1,0,0), 90);
     
     double start_time = omp_get_wtime();
     try {
-        ((scene *)sc)->light(200000000);
+        ((scene *)sc)->light(parameters[ "primary_rays_count" ]);
     } catch (const char * str) {
         cout << str << endl;
     } catch (...) {
@@ -64,7 +84,19 @@ int main(int argc, char** argv) {
     }
     cout << endl << "Lighting took " << (omp_get_wtime() - start_time) << " sec." << endl;
     
-    camera cam(dvec3(0,0,1.85), dvec3(1,0,0), dvec3(0,1,0), 50, 4000, 4000, 8, sc);
+    camera cam(dvec3(parameters[ "camera_position_x" ] / 1000.0,
+                     parameters[ "camera_position_y" ] / 1000.0,
+                     parameters[ "camera_position_z" ] / 1000.0),
+               dvec3(parameters[ "camera_right_x" ],
+                     parameters[ "camera_right_y" ],
+                     parameters[ "camera_right_z" ]),
+               dvec3(parameters[ "camera_up_x" ],
+                     parameters[ "camera_up_y" ],
+                     parameters[ "camera_up_z" ]),
+               parameters[ "focal_length" ],
+               parameters[ "res_w" ],
+               parameters[ "res_h" ],
+               parameters[ "SSAA" ], sc);
     
     start_time = omp_get_wtime();
     try {
@@ -75,6 +107,6 @@ int main(int argc, char** argv) {
         cout << "UNHANDLED ERROR!!!" << endl;
     }
     cout << endl << "Drawing took " << (omp_get_wtime() - start_time) << " sec." << endl;
-    cam.save_to_file("res.bmp");
+    cam.save_to_file(argc == 2 ? argv[1] : argv[2]);
     return 0;
 }
