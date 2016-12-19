@@ -4,12 +4,12 @@
 <dict>
 	<key>SchemeUserState</key>
 	<dict>
-		<key>Mashgraph_Task4_RayTracing — OMP.xcscheme</key>
+		<key>Mashgraph_Task4_RayTracing - fast.xcscheme</key>
 		<dict>
 			<key>orderHint</key>
 			<integer>1</integer>
 		</dict>
-		<key>Mashgraph_Task4_RayTracing.xcscheme</key>
+		<key>Mashgraph_Task4_RayTracing - qual.xcscheme</key>
 		<dict>
 			<key>orderHint</key>
 			<integer>0</integer>

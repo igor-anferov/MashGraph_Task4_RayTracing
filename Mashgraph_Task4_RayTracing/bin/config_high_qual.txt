@@ -1,0 +1,39 @@
+//  PARAMETER            VALUE      UNIT    COMMENT
+
+    LED_position_x       0          mm
+    LED_position_y       499.9      mm
+    LED_position_z       0          mm
+
+    LED_x_side_dir_x     1                  // Direction of first
+    LED_x_side_dir_y     0                  // of two LED sides.
+    LED_x_side_dir_z     0                  // Will be normalized
+
+    LED_y_side_dir_x     0                  // The same.
+    LED_y_side_dir_y     0                  // LED_z_side will be calculated
+    LED_y_side_dir_z     1                  // as right-handed coordinate system
+
+    LED_color_R          255                //
+    LED_color_G          255                // [0..255]
+    LED_color_B          255                //
+
+    primary_rays_count   150000000          // Number of rays emited directly
+                                            // from LED
+
+    camera_position_x    0          mm
+    camera_position_y    0          mm
+    camera_position_z    1850       mm
+
+    camera_right_x       1                  // Camera right direction
+    camera_right_y       0                  // Will be normalized
+    camera_right_z       0
+
+    camera_up_x          0                  // The same.
+    camera_up_y          1                  // look direction will be calculated
+    camera_up_z          0                  // as left-handed coordinate system
+
+    focal_length         50         mm      // Camera focal length
+
+    res_w                2000       pixels  // Horisontal resolution
+    res_h                2000       pixels  // Vertical resolution
+
+    SSAA                 4                  // Rays per pixel

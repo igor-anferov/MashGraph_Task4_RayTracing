@@ -1,11 +1,3 @@
-//
-//  object.h
-//  Mashgraph_Task4_RayTracing
-//
-//  Created by Игорь Анфёров on 10.12.2016.
-//  Copyright © 2016 Игорь Анфёров. All rights reserved.
-//
-
 #ifndef object_h
 #define object_h
 
@@ -67,7 +59,7 @@ public:
     dvec3 color = dvec3(0,1,0);
     double x_size = 1;
     double y_size = 1;
-    double diffuse = 0.7;
+    double diffuse = 0.5;
     double reflection = 0;
     double refraction = 0;
     vector<object *> parts;
@@ -164,7 +156,7 @@ public:
         
         if (brightness(diff_col) > 0.01) {
             static default_random_engine generator;
-            normal_distribution<float> angle (0, 120);
+            normal_distribution<float> angle (0, 30);
             uniform_real_distribution<float> plane (0, 180);
             dvec3 ray_pos = int_p;
             dvec3 ray_dir = cross(x_dir, y_dir);
@@ -173,9 +165,14 @@ public:
                 cur_angle = angle(generator);
             } while (cur_angle > 90 || cur_angle < -90);
             dmat4 rot_matrix = dmat4(glm::rotate(mat4(), cur_angle, vec3(x_dir)));
-            dmat4 rot_matrix2 = dmat4(glm::rotate(mat4(), plane(generator), vec3(ray_dir)));
+            do {
+                cur_angle = angle(generator);
+            } while (cur_angle > 90 || cur_angle < -90);
+            dmat4 rot_matrix2 = dmat4(glm::rotate(mat4(), cur_angle, vec3(y_dir)));
+            dmat4 rot_matrix3 = dmat4(glm::rotate(mat4(), plane(generator), vec3(ray_dir)));
             ray_dir = dvec3(rot_matrix * dvec4(ray_dir, 1));
             ray_dir = dvec3(rot_matrix2 * dvec4(ray_dir, 1));
+            ray_dir = dvec3(rot_matrix3 * dvec4(ray_dir, 1));
             ray_pos += ray_dir*0.00001;
             intersect_info tmp = main_scene->is_intersected_by(ray_pos, ray_dir);
             if (tmp.res) {
@@ -280,7 +277,7 @@ public:
         
         if (brightness(diff_col) > 0.01) {
             static default_random_engine generator;
-            normal_distribution<float> angle (0, 120);
+            normal_distribution<float> angle (0, 30);
             uniform_real_distribution<float> plane (0, 180);
             dvec3 ray_pos = int_p;
             dvec3 ray_dir = normalize(ray_pos - position);
@@ -289,9 +286,14 @@ public:
                 cur_angle = angle(generator);
             } while (cur_angle > 90 || cur_angle < -90);
             dmat4 rot_matrix = dmat4(glm::rotate(mat4(), cur_angle, vec3(x_dir)));
-            dmat4 rot_matrix2 = dmat4(glm::rotate(mat4(), plane(generator), vec3(ray_dir)));
+            do {
+                cur_angle = angle(generator);
+            } while (cur_angle > 90 || cur_angle < -90);
+            dmat4 rot_matrix2 = dmat4(glm::rotate(mat4(), cur_angle, vec3(y_dir)));
+            dmat4 rot_matrix3 = dmat4(glm::rotate(mat4(), plane(generator), vec3(ray_dir)));
             ray_dir = dvec3(rot_matrix * dvec4(ray_dir, 1));
             ray_dir = dvec3(rot_matrix2 * dvec4(ray_dir, 1));
+            ray_dir = dvec3(rot_matrix3 * dvec4(ray_dir, 1));
             ray_pos += ray_dir*0.00001;
             intersect_info tmp = main_scene->is_intersected_by(ray_pos, ray_dir);
             if (tmp.res) {
@@ -350,7 +352,7 @@ public:
         
         square = (object *) new rectangle<text_x, text_y> ("LED_White_Sqr");
         square->color = dvec3(1,1,1);
-        square->diffuse = 0.99;
+        square->diffuse = 0.9;
         parts.push_back(square);
         for (int i=0; i<text_x; i++) {
             for (int j=0; j<text_y; j++) {
@@ -361,7 +363,7 @@ public:
     ~LED();
     void emit() {
         static default_random_engine generator;
-        normal_distribution<float> angle (0, 120);
+        normal_distribution<float> angle (0, 30);
         uniform_real_distribution<double> x_pos (-x_size/2, x_size/2);
         uniform_real_distribution<double> y_pos (-y_size/2, y_size/2);
         uniform_real_distribution<float> plane (0, 180);
@@ -372,15 +374,37 @@ public:
             cur_angle = angle(generator);
         } while (cur_angle > 90 || cur_angle < -90);
         dmat4 rot_matrix = dmat4(glm::rotate(mat4(), cur_angle, vec3(x_dir)));
-        dmat4 rot_matrix2 = dmat4(glm::rotate(mat4(), plane(generator), vec3(ray_dir)));
+        do {
+            cur_angle = angle(generator);
+        } while (cur_angle > 90 || cur_angle < -90);
+        dmat4 rot_matrix2 = dmat4(glm::rotate(mat4(), cur_angle, vec3(y_dir)));
+        dmat4 rot_matrix3 = dmat4(glm::rotate(mat4(), plane(generator), vec3(ray_dir)));
         ray_dir = dvec3(rot_matrix * dvec4(ray_dir, 1));
         ray_dir = dvec3(rot_matrix2 * dvec4(ray_dir, 1));
+        ray_dir = dvec3(rot_matrix3 * dvec4(ray_dir, 1));
         ray_pos += ray_dir*0.00001;
         intersect_info tmp = main_scene->is_intersected_by(ray_pos, ray_dir);
         if (tmp.res) {
             tmp.obj->trace(color, ray_pos, ray_dir, tmp);
         }
     };
+    
+    intersect_info is_intersected_by(dvec3 beam_pos, dvec3 beam_dir) {
+        intersect_info tmp = parts[0]->is_intersected_by(beam_pos, beam_dir);
+        if (!tmp.res)
+            return intersect_info();
+        tmp.obj = this;
+        return tmp;
+    }
+    
+    void trace(dvec3 colour, dvec3 beam_pos, dvec3 beam_dir, intersect_info i) {
+        colour = dvec3(color);
+        parts[0]->trace(colour, beam_pos, beam_dir, i);
+    }
+    
+    dvec3 backtrace(dvec3 beam_pos, dvec3 beam_dir, intersect_info i) {
+        return parts[0]->backtrace(beam_pos, beam_dir, i);
+    }
 };
 
 class scene: object {

@@ -38,7 +38,9 @@ int main(int argc, char** argv) {
     parameters[ "res_w" ] = 512;
     parameters[ "res_h" ] = 512;
     parameters[ "SSAA" ] = 1;
-    parameters[ "primary_rays_count" ] = 1000000;
+    parameters[ "primary_rays_count" ] = 700000;
+    
+    omp_set_num_threads(omp_get_num_procs());
     
     if (argc == 3) {
         fstream configfile(argv[1]);

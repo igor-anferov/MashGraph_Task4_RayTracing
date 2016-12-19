@@ -172,6 +172,16 @@ scene::scene():object("Scene") {
     figure->translate(dvec3(parameters[ "LED_position_x" ] / 1000.0,
                             parameters[ "LED_position_y" ] / 1000.0,
                             parameters[ "LED_position_z" ] / 1000.0));
+    figure->parts[0]->color = dvec3(parameters[ "LED_color_R" ] / 255.0,
+                          parameters[ "LED_color_G" ] / 255.0,
+                          parameters[ "LED_color_B" ] / 255.0);
+    figure->parts[0]->x_dir = normalize( dvec3(parameters[ "LED_x_side_dir_x" ],
+                                     parameters[ "LED_x_side_dir_y" ],
+                                     parameters[ "LED_x_side_dir_z" ]) );
+    figure->parts[0]->y_dir = normalize( dvec3(parameters[ "LED_y_side_dir_x" ],
+                                     parameters[ "LED_y_side_dir_y" ],
+                                     parameters[ "LED_y_side_dir_z" ]) );
+
     parts.push_back(figure);
     
     figure = (object *) new parallelepiped;
