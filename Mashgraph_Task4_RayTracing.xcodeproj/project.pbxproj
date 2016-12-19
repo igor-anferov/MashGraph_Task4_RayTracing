@@ -13,6 +13,14 @@
 		785119941DF6FCE800030478 /* image_helper.c in Sources */ = {isa = PBXBuildFile; fileRef = 785119931DF6FCE800030478 /* image_helper.c */; };
 		785119961DF6FCEF00030478 /* SOIL.c in Sources */ = {isa = PBXBuildFile; fileRef = 785119951DF6FCEF00030478 /* SOIL.c */; };
 		785119981DF6FCF500030478 /* stb_image_aug.c in Sources */ = {isa = PBXBuildFile; fileRef = 785119971DF6FCF500030478 /* stb_image_aug.c */; };
+		7851D97B1E0819080041257A /* camera.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 7851D97A1E0819080041257A /* camera.cpp */; };
+		7851D97D1E08190E0041257A /* cornell_box.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 7851D97C1E08190E0041257A /* cornell_box.cpp */; };
+		7851D97F1E0819140041257A /* intersect_info.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 7851D97E1E0819140041257A /* intersect_info.cpp */; };
+		7851D9811E08191E0041257A /* parallelepiped.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 7851D9801E08191E0041257A /* parallelepiped.cpp */; };
+		7851D9831E0819220041257A /* parameters.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 7851D9821E0819220041257A /* parameters.cpp */; };
+		7851D9851E0819280041257A /* scene.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 7851D9841E0819280041257A /* scene.cpp */; };
+		7851D9871E08192D0041257A /* texture.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 7851D9861E08192D0041257A /* texture.cpp */; };
+		7851D9891E0819350041257A /* utilites.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 7851D9881E0819350041257A /* utilites.cpp */; };
 		788486411E016D6E00D465F8 /* libiomp5.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = 788486401E016D6E00D465F8 /* libiomp5.dylib */; };
 		789287491E008944004B33C7 /* Foundation.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 789287481E008944004B33C7 /* Foundation.framework */; };
 		7892874B1E00897D004B33C7 /* OpenGL.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 7892874A1E00897D004B33C7 /* OpenGL.framework */; };
@@ -41,6 +49,14 @@
 		785119931DF6FCE800030478 /* image_helper.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; name = image_helper.c; path = Mashgraph_Task4_RayTracing/src/SOIL/image_helper.c; sourceTree = "<group>"; };
 		785119951DF6FCEF00030478 /* SOIL.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; name = SOIL.c; path = Mashgraph_Task4_RayTracing/src/SOIL/SOIL.c; sourceTree = "<group>"; };
 		785119971DF6FCF500030478 /* stb_image_aug.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; name = stb_image_aug.c; path = Mashgraph_Task4_RayTracing/src/SOIL/stb_image_aug.c; sourceTree = "<group>"; };
+		7851D97A1E0819080041257A /* camera.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; name = camera.cpp; path = Mashgraph_Task4_RayTracing/src/camera.cpp; sourceTree = "<group>"; };
+		7851D97C1E08190E0041257A /* cornell_box.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; name = cornell_box.cpp; path = Mashgraph_Task4_RayTracing/src/cornell_box.cpp; sourceTree = "<group>"; };
+		7851D97E1E0819140041257A /* intersect_info.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; name = intersect_info.cpp; path = Mashgraph_Task4_RayTracing/src/intersect_info.cpp; sourceTree = "<group>"; };
+		7851D9801E08191E0041257A /* parallelepiped.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; name = parallelepiped.cpp; path = Mashgraph_Task4_RayTracing/src/parallelepiped.cpp; sourceTree = "<group>"; };
+		7851D9821E0819220041257A /* parameters.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; name = parameters.cpp; path = Mashgraph_Task4_RayTracing/src/parameters.cpp; sourceTree = "<group>"; };
+		7851D9841E0819280041257A /* scene.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; name = scene.cpp; path = Mashgraph_Task4_RayTracing/src/scene.cpp; sourceTree = "<group>"; };
+		7851D9861E08192D0041257A /* texture.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; name = texture.cpp; path = Mashgraph_Task4_RayTracing/src/texture.cpp; sourceTree = "<group>"; };
+		7851D9881E0819350041257A /* utilites.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; name = utilites.cpp; path = Mashgraph_Task4_RayTracing/src/utilites.cpp; sourceTree = "<group>"; };
 		788486401E016D6E00D465F8 /* libiomp5.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = libiomp5.dylib; path = ../../../../../../../usr/local/lib/libiomp5.dylib; sourceTree = "<group>"; };
 		789287481E008944004B33C7 /* Foundation.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Foundation.framework; path = System/Library/Frameworks/Foundation.framework; sourceTree = SDKROOT; };
 		7892874A1E00897D004B33C7 /* OpenGL.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = OpenGL.framework; path = System/Library/Frameworks/OpenGL.framework; sourceTree = SDKROOT; };
@@ -64,6 +80,14 @@
 		7851196E1DF6FAC800030478 = {
 			isa = PBXGroup;
 			children = (
+				7851D9881E0819350041257A /* utilites.cpp */,
+				7851D9861E08192D0041257A /* texture.cpp */,
+				7851D9841E0819280041257A /* scene.cpp */,
+				7851D9821E0819220041257A /* parameters.cpp */,
+				7851D9801E08191E0041257A /* parallelepiped.cpp */,
+				7851D97E1E0819140041257A /* intersect_info.cpp */,
+				7851D97C1E08190E0041257A /* cornell_box.cpp */,
+				7851D97A1E0819080041257A /* camera.cpp */,
 				780C2A921DF856CA00B3C79F /* object.cpp */,
 				78CC74B61DFC125B00C6AF6E /* object.h */,
 				780C2A901DF8495B00B3C79F /* main.cpp */,
@@ -164,6 +188,14 @@
 			files = (
 				780C2A911DF8495B00B3C79F /* main.cpp in Sources */,
 				780C2A931DF856CA00B3C79F /* object.cpp in Sources */,
+				7851D97B1E0819080041257A /* camera.cpp in Sources */,
+				7851D97D1E08190E0041257A /* cornell_box.cpp in Sources */,
+				7851D97F1E0819140041257A /* intersect_info.cpp in Sources */,
+				7851D9811E08191E0041257A /* parallelepiped.cpp in Sources */,
+				7851D9831E0819220041257A /* parameters.cpp in Sources */,
+				7851D9851E0819280041257A /* scene.cpp in Sources */,
+				7851D9871E08192D0041257A /* texture.cpp in Sources */,
+				7851D9891E0819350041257A /* utilites.cpp in Sources */,
 				785119921DF6FCE300030478 /* image_DXT.c in Sources */,
 				785119941DF6FCE800030478 /* image_helper.c in Sources */,
 				785119961DF6FCEF00030478 /* SOIL.c in Sources */,

@@ -6,11 +6,12 @@
 
 #include <libiomp/omp.h>
 
-#include "object.h"
+#include "parameters.h"
+
+#include "scene.h"
+#include "camera.h"
 
 using namespace std;
-
-map<string, double> parameters;
 
 int main(int argc, char** argv) {
     parameters[ "camera_position_x" ] = 0;
