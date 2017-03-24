@@ -16,7 +16,7 @@
     LED_color_G          255                // [0..255]
     LED_color_B          255                //
 
-    primary_rays_count   700000             // Number of rays emited directly
+    primary_rays_count   1500000            // Number of rays emited directly
                                             // from LED
 
     camera_position_x    0          mm

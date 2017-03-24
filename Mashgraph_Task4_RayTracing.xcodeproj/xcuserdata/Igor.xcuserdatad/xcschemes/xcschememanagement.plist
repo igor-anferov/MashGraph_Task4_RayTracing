@@ -4,6 +4,11 @@
 <dict>
 	<key>SchemeUserState</key>
 	<dict>
+		<key>Mashgraph_Task4_RayTracing - camera.xcscheme</key>
+		<dict>
+			<key>orderHint</key>
+			<integer>2</integer>
+		</dict>
 		<key>Mashgraph_Task4_RayTracing - fast.xcscheme</key>
 		<dict>
 			<key>orderHint</key>

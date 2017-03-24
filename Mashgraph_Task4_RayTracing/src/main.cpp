@@ -4,7 +4,7 @@
 #include <map>
 #include <string>
 
-#include <libiomp/omp.h>
+#include <omp.h>
 
 #include "parameters.h"
 
